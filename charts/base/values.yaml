@@ -1,0 +1,301 @@
+########################################################################
+### Global Parameters ###
+########################################################################
+global:
+  # -- Global image registry. Used as the default for all charts, but can be overridden by individual chart values.
+  # @section -- Global parameters
+  imageRegistry: ""
+  # -- Global image tag used as the default for all charts. Can be overridden by individual chart values.
+  # @section -- Global parameters
+  imageTag: ""
+
+########################################################################
+### Common Parameters ###
+########################################################################
+# -- Override resource names (partially)
+# @section -- Common parameters
+nameOverride: ""
+# -- Override resource names (fully)
+# @section -- Common parameters
+fullnameOverride: ""
+
+########################################################################
+### Common Metadata ###
+########################################################################
+# -- Labels to add to all deployed resources
+# @section -- Common parameters
+commonLabels: {}
+# -- Annotations to add to all deployed resources
+# @section -- Common parameters
+commonAnnotations: {}
+
+########################################################################
+### Workload ###
+########################################################################
+# -- Additional annotations on the Deployment resource itself.
+# @section -- Workload parameters
+annotations: {}
+# -- Additional labels on the Deployment resource itself.
+# @section -- Workload parameters
+labels: {}
+# -- (int) Number of pod replicas. Omit (or set to 0) when autoscaling.enabled=true
+# @section -- Workload parameters
+replicas: null
+# -- Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }
+# @section -- Workload parameters
+strategy: {}
+# -- (int) Number of old ReplicaSets to retain.
+# @section -- Workload parameters
+revisionHistoryLimit: null
+
+########################################################################
+### Pod Parameters ###
+########################################################################
+# -- Additional annotations on the Pod template.
+# @section -- Workload parameters
+podAnnotations: {}
+# -- Additional labels on the Pod template.
+# @section -- Workload parameters
+podLabels: {}
+# -- Pod-level security context.
+# @section -- Workload parameters
+podSecurityContext: {}
+# -- Image pull secrets (list of { name: ... }).
+# @section -- Workload parameters
+imagePullSecrets: []
+# -- (bool) Whether to auto-mount the service account token to the pod.
+# @section -- Workload parameters
+automountServiceAccountToken: null
+# -- (object/list) Init containers (values are tpl-rendered).
+# @section -- Workload parameters
+initContainers: {}
+# -- (object/list) Sidecar containers (values are tpl-rendered).
+# @section -- Workload parameters
+sidecarContainers: {}
+# -- (object/list) Volumes (values are tpl-rendered).
+# @section -- Workload parameters
+volumes: {}
+# -- Node selector for pod scheduling.
+# @section -- Workload parameters
+nodeSelector: {}
+# -- Tolerations for pod scheduling.
+# @section -- Workload parameters
+tolerations: []
+# -- Pod affinity/anti-affinity rules.
+# @section -- Workload parameters
+affinity: {}
+# -- Topology spread constraints.
+# @section -- Workload parameters
+topologySpreadConstraints: []
+# -- DNS policy for the pod.
+# @section -- Workload parameters
+dnsPolicy: ""
+# -- Priority class name.
+# @section -- Workload parameters
+priorityClassName: ""
+# -- (int) Grace period (seconds) before forceful termination.
+# @section -- Workload parameters
+terminationGracePeriodSeconds: null
+# -- (bool) Enable Kubernetes service links injected as env vars.
+# @section -- Workload parameters
+enableServiceLinks: null
+
+########################################################################
+### Container Parameters ###
+########################################################################
+image:
+  # -- Container image registry.
+  # @section -- Workload parameters
+  registry: ""
+  # -- Container image repository.
+  # @section -- Workload parameters
+  repository: ""
+  # -- Container image tag. Defaults to Chart.AppVersion when empty.
+  # @section -- Workload parameters
+  # @default latest
+  tag: ""
+  # -- (string) Image pull policy.
+  # @section -- Workload parameters
+  pullPolicy: null
+# -- Override the container entrypoint.
+# @section -- Workload parameters
+command: []
+# -- Arguments to the entrypoint.
+# @section -- Workload parameters
+args: []
+# -- (object/list) Environment variables (tpl-rendered).
+# @section -- Workload parameters
+env: {}
+# -- (list) envFrom sources (tpl-rendered).
+# @section -- Workload parameters
+envFrom: []
+# -- (object/list) Extra ports in addition to the primary port derived from service.port.
+# @section -- Workload parameters
+extraPorts: {}
+# -- Compute resource requests and limits.
+# @section -- Workload parameters
+resources: {}
+# -- Container-level security context.
+# @section -- Workload parameters
+securityContext: {}
+# -- Liveness probe configuration.
+# @section -- Workload parameters
+livenessProbe: {}
+# -- Readiness probe configuration.
+# @section -- Workload parameters
+readinessProbe: {}
+# -- Startup probe configuration.
+# @section -- Workload parameters
+startupProbe: {}
+# -- Container lifecycle hooks.
+# @section -- Workload parameters
+lifecycle: {}
+# -- (object/list) Volume mounts (tpl-rendered). Key = volume name.
+# @section -- Workload parameters
+volumeMounts: {}
+
+########################################################################
+### Security ###
+########################################################################
+serviceAccount:
+  # -- Whether to create a ServiceAccount resource.
+  # @section -- Security parameters
+  create: false
+  # -- Annotations for the ServiceAccount.
+  # @section -- Security parameters
+  annotations: {}
+  # -- (bool) Automatically mount API credentials.
+  # @section -- Security parameters
+  automount: null
+  # -- Name of the ServiceAccount. Auto-generated from fullname if empty and create=true.
+  # @section -- Security parameters
+  name: ""
+
+########################################################################
+### Network ###
+########################################################################
+service:
+  # -- Whether to create a Service resource.
+  # @section -- Network parameters
+  enabled: false
+  # -- Annotations for the Service.
+  # @section -- Network parameters
+  annotations: {}
+  # -- Service type.
+  # @section -- Network parameters
+  type: ClusterIP
+  # -- (int) Primary port exposed by the Service (also used as the container's primary port).
+  # @section -- Network parameters
+  port: null
+  # -- Target port on the container. Defaults to the port name "http".
+  # @section -- Network parameters
+  targetPort: http
+  # -- Protocol for the primary port.
+  # @section -- Network parameters
+  protocol: TCP
+  # -- NodePort value (only applies to NodePort/LoadBalancer service types).
+  # @section -- Network parameters
+  nodePort: null
+  # -- Extra ports  Key is the port name.
+  # @section -- Network parameters
+  extraPorts: {}
+
+ingress:
+  # -- Whether to create an Ingress resource.
+  # @section -- Network parameters
+  enabled: false
+  # -- Annotations for the Ingress.
+  # @section -- Network parameters
+  annotations: {}
+  # -- Ingress class name.
+  # @section -- Network parameters
+  className: ""
+  # -- List of hostnames to route traffic to this service.
+  # @section -- Network parameters
+  hostnames: []
+  # -- Path rules applied to every hostname.
+  # @section -- Network parameters
+  paths:
+    - path: /
+      pathType: Prefix
+  # -- TLS configuration.
+  # @section -- Network parameters
+  tls:
+    enabled: false
+    # -- Secret name; defaults to "<first-hostname>-tls" when empty.
+    # @section -- Network parameters
+    secretName: ""
+
+########################################################################
+### HTTPRoute (Gateway API) ###
+########################################################################
+httpRoute:
+  # -- Whether to create an HTTPRoute resource.
+  # @section -- Network parameters
+  enabled: false
+  # -- Annotations for the HTTPRoute.
+  # @section -- Network parameters
+  annotations: {}
+  # -- Gateway parentRefs this route attaches to.
+  # @section -- Network parameters
+  parentRefs: []
+  # -- Hostnames matched by this route.
+  # @section -- Network parameters
+  hostnames: []
+  # -- Routing rules. backendRefs are auto-populated from the Service.
+  # @section -- Network parameters
+  rules: []
+
+########################################################################
+### Autoscaling ###
+########################################################################
+autoscaling:
+  # -- Whether to create an HPA resource (also suppresses Deployment.spec.replicas).
+  # @section -- Autoscaling parameters
+  enabled: false
+  # -- Annotations for the HPA.
+  # @section -- Autoscaling parameters
+  annotations: {}
+  # -- Labels for the HPA.
+  # @section -- Autoscaling parameters
+  labels: {}
+  # -- Minimum number of replicas when autoscaling is enabled.
+  # @section -- Autoscaling parameters
+  minReplicas: 1
+  # -- Maximum number of replicas when autoscaling is enabled.
+  # @section -- Autoscaling parameters
+  maxReplicas: 10
+  # -- Target CPU utilization percentage.
+  # @section -- Autoscaling parameters
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+  # -- Advanced scaling behavior.
+  # @section -- Autoscaling parameters
+  behavior: {}
+  # -- Additional custom metrics (appended to the generated metrics list).
+  # @section -- Autoscaling parameters
+  metrics: []
+
+########################################################################
+### ConfigMap ###
+########################################################################
+configMap:
+  # -- Whether to create a ConfigMap resource.
+  # @section -- ConfigMap parameters
+  enabled: false
+  # -- Annotations for the ConfigMap.
+  # @section -- ConfigMap parameters
+  annotations: {}
+  # -- Labels for the ConfigMap.
+  # @section -- ConfigMap parameters
+  labels: {}
+  # -- Key/value data for the ConfigMap.
+  # @section -- ConfigMap parameters
+  data: {}
+
+########################################################################
+### Extra / Arbitrary Objects ###
+########################################################################
+# -- (object/list) Render additional Kubernetes manifests. Each entry may be a string (with Go template expressions) or a YAML object.
+# @section -- Extras
+extraObjects: []

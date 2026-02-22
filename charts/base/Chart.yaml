@@ -1,0 +1,17 @@
+apiVersion: v2
+name: base
+description: Base Helm chart for Kubernetes - fully values-driven.
+type: application
+version: 0.1.0
+maintainers:
+  - name: bonddim
+sources:
+  - https://github.com/bonddim/helm-charts
+keywords:
+  - application
+  - base
+  - common
+  - deployment
+  - service
+  - ingress
+  - httproute

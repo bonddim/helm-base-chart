@@ -1,0 +1,14 @@
+{{- if .Values.configMap.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- with include "base.annotations" (dict "annotations" .Values.configMap.annotations "context" $) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" .Values.configMap.labels "context" .) | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+data:
+  {{- range $key, $value := .Values.configMap.data }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
