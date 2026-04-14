@@ -38,7 +38,8 @@ annotations: {}
 # -- Additional labels on the Deployment resource itself.
 # @section -- Workload parameters
 labels: {}
-# -- (int) Number of pod replicas. Omit (or set to 0) when autoscaling.enabled=true
+# -- (int) Number of pod replicas. Ignored when autoscaling.enabled=true.
+# Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm.
 # @section -- Workload parameters
 replicas: null
 # -- Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }

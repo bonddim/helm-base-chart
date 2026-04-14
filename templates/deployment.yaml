@@ -7,10 +7,8 @@ metadata:
   labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 4 }}
   name: {{ include "base.fullname" . }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  {{- with .Values.replicas }}
-  replicas: {{ . }}
-  {{- end }}
+  {{- if and (not .Values.autoscaling.enabled) (ge (int .Values.replicas) 0) }}
+  replicas: {{ .Values.replicas }}
   {{- end }}
   {{- with .Values.revisionHistoryLimit }}
   revisionHistoryLimit: {{ . }}
