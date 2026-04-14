@@ -1,6 +1,6 @@
 # base
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Base Helm chart for Kubernetes - fully values-driven.
 
@@ -12,7 +12,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 
 ## Source Code
 
-* <https://github.com/bonddim/helm-charts>
+* <https://github.com/bonddim/helm-base-chart>
 
 ## Values
 
@@ -38,7 +38,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 |-----|------|---------|-------------|
 | annotations | object | `{}` | Additional annotations on the Deployment resource itself. |
 | labels | object | `{}` | Additional labels on the Deployment resource itself. |
-| replicas | int | `nil` | Number of pod replicas. Omit (or set to 0) when autoscaling.enabled=true |
+| replicas | int | `nil` | Number of pod replicas. Ignored when autoscaling.enabled=true. Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm. |
 | strategy | object | `{}` | Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } } |
 | revisionHistoryLimit | int | `nil` | Number of old ReplicaSets to retain. |
 | podAnnotations | object | `{}` | Additional annotations on the Pod template. |
