@@ -8,7 +8,7 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
       - id: check-yaml
-        exclude: "^templates/.*\\.ya?ml$"
+        exclude: "^charts/.*/templates/.*\\.ya?ml$"
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
@@ -17,5 +17,16 @@ repos:
     hooks:
       - id: helm-docs-container
         args:
-          - --chart-search-root=.
+          - --chart-search-root=charts
           - --sort-values-order=file
+
+  - repo: local
+    hooks:
+      - id: helm-chart-testing
+        name: Helm Chart Testing
+        language: docker_image
+        alias: ct
+        files: "^charts/"
+        pass_filenames: false
+        require_serial: false
+        entry: quay.io/helmpack/chart-testing ct lint
