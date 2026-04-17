@@ -6,12 +6,11 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -31,4 +30,4 @@ jobs:
         uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
 
       - name: Run chart-testing (lint)
-        run: ct lint --use-helmignore --charts .
+        run: ct lint --chart-dirs .
