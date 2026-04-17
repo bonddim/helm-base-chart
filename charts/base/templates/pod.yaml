@@ -1,0 +1,12 @@
+{{- if eq .Values.workload "pod" -}}
+{{- $podTemplate := include "base.podTemplate" . | fromYaml -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  {{- with $podTemplate.metadata.annotations }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- $podTemplate.metadata.labels | toYaml | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+spec: {{- $podTemplate.spec | toYaml | nindent 2 }}
+{{- end }}

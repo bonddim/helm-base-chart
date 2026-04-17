@@ -1,6 +1,6 @@
-{{- if eq .Values.workload "deployment" -}}
+{{- if eq .Values.workload "statefulset" -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   {{- with include "base.annotations" (dict "annotations" .Values.annotations "context" .) }}
   annotations: {{- . | nindent 4 }}
@@ -16,8 +16,18 @@ spec:
   {{- end }}
   selector:
     matchLabels: {{- include "base.selectorLabels" . | nindent 6 }}
-  {{- with .Values.strategy }}
-  strategy: {{- toYaml . | nindent 4 }}
+  serviceName: {{ default (include "base.fullname" .) .Values.serviceName }}
+  {{- with .Values.podManagementPolicy }}
+  podManagementPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.updateStrategy }}
+  updateStrategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy: {{- toYaml . | nindent 4 }}
   {{- end }}
   template: {{- include "base.podTemplate" . | nindent 4 }}
+  {{- with .Values.volumeClaimTemplates }}
+  volumeClaimTemplates: {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- end }}

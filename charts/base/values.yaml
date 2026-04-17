@@ -32,7 +32,10 @@ commonAnnotations: {}
 ########################################################################
 ### Workload ###
 ########################################################################
-# -- Additional annotations on the Deployment resource itself.
+# -- Workload type to deploy. One of: deployment, daemonset, statefulset, pod or null
+# @section -- Workload parameters
+workload: deployment
+# -- Additional annotations on the Workload resource itself.
 # @section -- Workload parameters
 annotations: {}
 # -- Additional labels on the Deployment resource itself.
@@ -45,6 +48,21 @@ replicas: null
 # -- Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }
 # @section -- Workload parameters
 strategy: {}
+# -- DaemonSet/StatefulSet update strategy. e.g. { type: RollingUpdate } or { type: OnDelete }
+# @section -- Workload parameters
+updateStrategy: {}
+# -- (string) StatefulSet service name. Defaults to the fullname when empty.
+# @section -- Workload parameters
+serviceName: ""
+# -- (string) StatefulSet pod management policy: OrderedReady or Parallel.
+# @section -- Workload parameters
+podManagementPolicy: ""
+# -- StatefulSet volumeClaimTemplates for persistent storage.
+# @section -- Workload parameters
+volumeClaimTemplates: []
+# -- StatefulSet persistentVolumeClaimRetentionPolicy.
+# @section -- Workload parameters
+persistentVolumeClaimRetentionPolicy: {}
 # -- (int) Number of old ReplicaSets to retain.
 # @section -- Workload parameters
 revisionHistoryLimit: null
