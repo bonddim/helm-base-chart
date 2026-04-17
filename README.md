@@ -7,7 +7,7 @@ A simple, straightforward Helm chart driven entirely by `values.yaml` for deploy
 
 ## Usage
 
-The chart is published to GitHub Container Registry as an OCI artifact. 
+The chart is published to GitHub Container Registry as an OCI artifact.
 You may install it directly with your own values - **no wrapper chart, no boilerplate templates required**:
 
 ```bash
@@ -39,7 +39,7 @@ ingress:
           pathType: Prefix
 ```
 
-See [chart/values.yaml](chart/values.yaml) and [chart/README.md](chart/README.md) for the full list of configurable parameters.
+See [values.yaml](charts/base/values.yaml) and [README.md](charts/base/README.md) for the full list of configurable parameters.
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request with any improvements or bug fixes.

@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - chart
+      - charts
 
 jobs:
   publish:
@@ -26,10 +26,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get chart version
-        run: echo "CHART_VERSION=$(helm show chart chart | yq .version)" | tee -a $GITHUB_ENV
+        run: echo "CHART_VERSION=$(helm show chart charts/base | yq .version)" | tee -a $GITHUB_ENV
 
       - name: Package helm chart
-        run: helm package --dependency-update chart
+        run: helm package --dependency-update charts/base
 
       - name: Push chart to GHCR
         run: helm push base-${CHART_VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/helm-charts
