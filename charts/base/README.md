@@ -1,6 +1,6 @@
 # base
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Base Helm chart for Kubernetes - fully values-driven.
 
@@ -36,10 +36,16 @@ Base Helm chart for Kubernetes - fully values-driven.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| annotations | object | `{}` | Additional annotations on the Deployment resource itself. |
+| workload | string | `"deployment"` | Workload type to deploy. One of: deployment, daemonset, statefulset, pod or null |
+| annotations | object | `{}` | Additional annotations on the Workload resource itself. |
 | labels | object | `{}` | Additional labels on the Deployment resource itself. |
 | replicas | int | `nil` | Number of pod replicas. Ignored when autoscaling.enabled=true. Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm. |
 | strategy | object | `{}` | Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } } |
+| updateStrategy | object | `{}` | DaemonSet/StatefulSet update strategy. e.g. { type: RollingUpdate } or { type: OnDelete } |
+| serviceName | string | `""` | StatefulSet service name. Defaults to the fullname when empty. |
+| podManagementPolicy | string | `""` | StatefulSet pod management policy: OrderedReady or Parallel. |
+| volumeClaimTemplates | list | `[]` | StatefulSet volumeClaimTemplates for persistent storage. |
+| persistentVolumeClaimRetentionPolicy | object | `{}` | StatefulSet persistentVolumeClaimRetentionPolicy. |
 | revisionHistoryLimit | int | `nil` | Number of old ReplicaSets to retain. |
 | podAnnotations | object | `{}` | Additional annotations on the Pod template. |
 | podLabels | object | `{}` | Additional labels on the Pod template. |

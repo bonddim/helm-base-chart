@@ -1,6 +1,6 @@
-{{- if eq .Values.workload "deployment" -}}
+{{- if eq .Values.workload "daemonset" -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   {{- with include "base.annotations" (dict "annotations" .Values.annotations "context" .) }}
   annotations: {{- . | nindent 4 }}
@@ -8,16 +8,13 @@ metadata:
   labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 4 }}
   name: {{ include "base.fullname" . }}
 spec:
-  {{- if and (not .Values.autoscaling.enabled) (ge (int .Values.replicas) 0) }}
-  replicas: {{ .Values.replicas }}
-  {{- end }}
   {{- with .Values.revisionHistoryLimit }}
   revisionHistoryLimit: {{ . }}
   {{- end }}
   selector:
     matchLabels: {{- include "base.selectorLabels" . | nindent 6 }}
-  {{- with .Values.strategy }}
-  strategy: {{- toYaml . | nindent 4 }}
+  {{- with .Values.updateStrategy }}
+  updateStrategy: {{- toYaml . | nindent 4 }}
   {{- end }}
   template: {{- include "base.podTemplate" . | nindent 4 }}
 {{- end }}
