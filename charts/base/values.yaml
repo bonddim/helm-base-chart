@@ -32,7 +32,7 @@ commonAnnotations: {}
 ########################################################################
 ### Workload ###
 ########################################################################
-# -- Workload type to deploy. One of: deployment, daemonset, statefulset, pod or null
+# -- Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, pod or null
 # @section -- Workload parameters
 workload: deployment
 # -- Additional annotations on the Workload resource itself.
@@ -45,12 +45,9 @@ labels: {}
 # Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm.
 # @section -- Workload parameters
 replicas: null
-# -- Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }
+# -- Update strategy for the selected workload. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }
 # @section -- Workload parameters
 strategy: {}
-# -- DaemonSet/StatefulSet update strategy. e.g. { type: RollingUpdate } or { type: OnDelete }
-# @section -- Workload parameters
-updateStrategy: {}
 # -- (string) StatefulSet service name. Defaults to the fullname when empty.
 # @section -- Workload parameters
 serviceName: ""
@@ -66,6 +63,33 @@ persistentVolumeClaimRetentionPolicy: {}
 # -- (int) Number of old ReplicaSets to retain.
 # @section -- Workload parameters
 revisionHistoryLimit: null
+
+
+# -- Rollout parameters. Only applicable when workload=rollout.
+# https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+rollout:
+  analysis: {}
+  # Minimum number of seconds for which a newly created pod should be ready
+  # without any of its container crashing, for it to be considered available.
+  # Defaults to 0 (pod will be considered available as soon as it is ready)
+  minReadySeconds: 0
+  # Pause allows a user to manually pause a rollout at any time. A rollout
+  # will not advance through its steps while it is manually paused, but HPA
+  # auto-scaling will still occur. Typically not explicitly set in the manifest,
+  # but controlled via tools (e.g. kubectl argo rollouts pause). If true at
+  # initial creation of Rollout, replicas are not scaled up automatically
+  # from zero unless manually promoted.
+  paused: null
+  progressDeadlineSeconds: 600
+    # 600
+    # Whether to abort the update when ProgressDeadlineSeconds is exceeded.
+  # Optional and default is false.
+  progressDeadlineAbort: null # bool
+    # The rollback window provides a way to fast track deployments to
+  # previously deployed versions.
+  # Optional, and by default is not set.
+  rollbackWindow: {}
+    # revisions: 3
 
 ########################################################################
 ### Pod Parameters ###
