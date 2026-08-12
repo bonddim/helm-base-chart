@@ -112,6 +112,13 @@ Base Helm chart for Kubernetes - fully values-driven.
 | httpRoute.parentRefs | list | `[]` | Gateway parentRefs this route attaches to. |
 | httpRoute.hostnames | list | `[]` | Hostnames matched by this route. |
 | httpRoute.rules | list | `[]` | Routing rules. backendRefs are auto-populated from the Service. |
+| networkPolicy.enabled | bool | `false` | Whether to create a NetworkPolicy resource. |
+| networkPolicy.annotations | object | `{}` | Annotations for the NetworkPolicy. |
+| networkPolicy.labels | object | `{}` | Labels for the NetworkPolicy. |
+| networkPolicy.podSelector | object | `{}` | Pods this policy applies to. Defaults to this release's selector labels when empty. |
+| networkPolicy.policyTypes | list | `[]` | Policy types to enforce, e.g. [Ingress, Egress]. Listing a type without matching rules below denies all traffic of that type. |
+| networkPolicy.ingress | list | `[]` | Ingress rules, passed through to the NetworkPolicy spec (tpl-rendered). |
+| networkPolicy.egress | list | `[]` | Egress rules, passed through to the NetworkPolicy spec (tpl-rendered). |
 
 ### Autoscaling parameters
 
@@ -125,6 +132,17 @@ Base Helm chart for Kubernetes - fully values-driven.
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage. |
 | autoscaling.behavior | object | `{}` | Advanced scaling behavior. |
 | autoscaling.metrics | list | `[]` | Additional custom metrics (appended to the generated metrics list). |
+
+### Pod Disruption Budget parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| podDisruptionBudget.enabled | bool | `false` | Whether to create a PodDisruptionBudget resource. |
+| podDisruptionBudget.annotations | object | `{}` | Annotations for the PodDisruptionBudget. |
+| podDisruptionBudget.labels | object | `{}` | Labels for the PodDisruptionBudget. |
+| podDisruptionBudget.minAvailable | int/string | `1` | Minimum number or percentage of pods that must stay available. Mutually exclusive with maxUnavailable - set this to null to use maxUnavailable. |
+| podDisruptionBudget.maxUnavailable | int/string | `nil` | Maximum number or percentage of pods that may be unavailable. Mutually exclusive with minAvailable. |
+| podDisruptionBudget.unhealthyPodEvictionPolicy | string | `nil` | How unhealthy pods are counted during eviction: IfHealthyBudget or AlwaysAllow. |
 
 ### ConfigMap parameters
 
