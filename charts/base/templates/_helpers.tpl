@@ -101,3 +101,11 @@ Tag defaults to Chart.AppVersion when empty.
 {{- printf "%s:%s" $repository $tag }}
 {{- end }}
 {{- end }}
+
+{{/*
+Defines service name used with the Argo Rollouts workload.
+Usage: {{ include "base.rolloutServiceName" . }}
+*/}}
+{{- define "base.rolloutServiceName" -}}
+{{- printf "%s-rollout" (include "base.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end -}}

@@ -12,6 +12,7 @@ spec:
   {{- with .Values.httpRoute.hostnames }}
   hostnames: {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- $isCanary := and (eq .Values.workload "rollout") (hasKey .Values.strategy "canary") }}
   rules:
     {{- range .Values.httpRoute.rules }}
     - backendRefs:
@@ -19,7 +20,14 @@ spec:
           kind: Service
           name: {{ include "base.fullname" $ }}
           port: {{ $.Values.service.port }}
-          weight: 1
+          weight: {{ $isCanary | ternary 100 1 }}
+        {{- if $isCanary }}
+        - group: ""
+          kind: Service
+          name: {{ include "base.rolloutServiceName" $ }}
+          port: {{ $.Values.service.port }}
+          weight: 0
+        {{- end }}
       {{- with .filters }}
       filters: {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -20,7 +20,7 @@ spec:
   {{- with .Values.podManagementPolicy }}
   podManagementPolicy: {{ . }}
   {{- end }}
-  {{- with .Values.updateStrategy }}
+  {{- with .Values.strategy }}
   updateStrategy: {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- with .Values.persistentVolumeClaimRetentionPolicy }}

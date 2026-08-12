@@ -1,6 +1,6 @@
 # base
 
-![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Base Helm chart for Kubernetes - fully values-driven.
 
@@ -36,12 +36,11 @@ Base Helm chart for Kubernetes - fully values-driven.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| workload | string | `"deployment"` | Workload type to deploy. One of: deployment, daemonset, statefulset, pod or null |
+| workload | string | `"deployment"` | Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, pod or null |
 | annotations | object | `{}` | Additional annotations on the Workload resource itself. |
 | labels | object | `{}` | Additional labels on the Deployment resource itself. |
 | replicas | int | `nil` | Number of pod replicas. Ignored when autoscaling.enabled=true. Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm. |
-| strategy | object | `{}` | Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } } |
-| updateStrategy | object | `{}` | DaemonSet/StatefulSet update strategy. e.g. { type: RollingUpdate } or { type: OnDelete } |
+| strategy | object | `{}` | Update strategy for the selected workload. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }. For workload=rollout, the chart merges Service references into this strategy: `stableService`/`activeService`. |
 | serviceName | string | `""` | StatefulSet service name. Defaults to the fullname when empty. |
 | podManagementPolicy | string | `""` | StatefulSet pod management policy: OrderedReady or Parallel. |
 | volumeClaimTemplates | list | `[]` | StatefulSet volumeClaimTemplates for persistent storage. |
@@ -113,6 +112,13 @@ Base Helm chart for Kubernetes - fully values-driven.
 | httpRoute.parentRefs | list | `[]` | Gateway parentRefs this route attaches to. |
 | httpRoute.hostnames | list | `[]` | Hostnames matched by this route. |
 | httpRoute.rules | list | `[]` | Routing rules. backendRefs are auto-populated from the Service. |
+| networkPolicy.enabled | bool | `false` | Whether to create a NetworkPolicy resource. |
+| networkPolicy.annotations | object | `{}` | Annotations for the NetworkPolicy. |
+| networkPolicy.labels | object | `{}` | Labels for the NetworkPolicy. |
+| networkPolicy.podSelector | object | `{}` | Pods this policy applies to. Defaults to this release's selector labels when empty. |
+| networkPolicy.policyTypes | list | `[]` | Policy types to enforce, e.g. [Ingress, Egress]. Listing a type without matching rules below denies all traffic of that type. |
+| networkPolicy.ingress | list | `[]` | Ingress rules, passed through to the NetworkPolicy spec (tpl-rendered). |
+| networkPolicy.egress | list | `[]` | Egress rules, passed through to the NetworkPolicy spec (tpl-rendered). |
 
 ### Autoscaling parameters
 
@@ -126,6 +132,17 @@ Base Helm chart for Kubernetes - fully values-driven.
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage. |
 | autoscaling.behavior | object | `{}` | Advanced scaling behavior. |
 | autoscaling.metrics | list | `[]` | Additional custom metrics (appended to the generated metrics list). |
+
+### Pod Disruption Budget parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| podDisruptionBudget.enabled | bool | `false` | Whether to create a PodDisruptionBudget resource. |
+| podDisruptionBudget.annotations | object | `{}` | Annotations for the PodDisruptionBudget. |
+| podDisruptionBudget.labels | object | `{}` | Labels for the PodDisruptionBudget. |
+| podDisruptionBudget.minAvailable | int/string | `1` | Minimum number or percentage of pods that must stay available. Mutually exclusive with maxUnavailable - set this to null to use maxUnavailable. |
+| podDisruptionBudget.maxUnavailable | int/string | `nil` | Maximum number or percentage of pods that may be unavailable. Mutually exclusive with minAvailable. |
+| podDisruptionBudget.unhealthyPodEvictionPolicy | string | `nil` | How unhealthy pods are counted during eviction: IfHealthyBudget or AlwaysAllow. |
 
 ### ConfigMap parameters
 
@@ -141,6 +158,12 @@ Base Helm chart for Kubernetes - fully values-driven.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | extraObjects | object/list | `[]` | Render additional Kubernetes manifests. Each entry may be a string (with Go template expressions) or a YAML object. |
+
+### Other Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| rollout | object | `{"analysis":{},"minReadySeconds":0,"paused":null,"progressDeadlineAbort":null,"progressDeadlineSeconds":600,"rollbackWindow":{}}` | Rollout parameters. Only applicable when workload=rollout. https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

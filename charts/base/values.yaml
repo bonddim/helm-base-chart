@@ -32,7 +32,7 @@ commonAnnotations: {}
 ########################################################################
 ### Workload ###
 ########################################################################
-# -- Workload type to deploy. One of: deployment, daemonset, statefulset, pod or null
+# -- Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, pod or null
 # @section -- Workload parameters
 workload: deployment
 # -- Additional annotations on the Workload resource itself.
@@ -45,12 +45,10 @@ labels: {}
 # Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm.
 # @section -- Workload parameters
 replicas: null
-# -- Deployment update strategy. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }
+# -- Update strategy for the selected workload. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }.
+# For workload=rollout, the chart merges Service references into this strategy: `stableService`/`activeService`.
 # @section -- Workload parameters
 strategy: {}
-# -- DaemonSet/StatefulSet update strategy. e.g. { type: RollingUpdate } or { type: OnDelete }
-# @section -- Workload parameters
-updateStrategy: {}
 # -- (string) StatefulSet service name. Defaults to the fullname when empty.
 # @section -- Workload parameters
 serviceName: ""
@@ -66,6 +64,33 @@ persistentVolumeClaimRetentionPolicy: {}
 # -- (int) Number of old ReplicaSets to retain.
 # @section -- Workload parameters
 revisionHistoryLimit: null
+
+
+# -- Rollout parameters. Only applicable when workload=rollout.
+# https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+rollout:
+  analysis: {}
+  # Minimum number of seconds for which a newly created pod should be ready
+  # without any of its container crashing, for it to be considered available.
+  # Defaults to 0 (pod will be considered available as soon as it is ready)
+  minReadySeconds: 0
+  # Pause allows a user to manually pause a rollout at any time. A rollout
+  # will not advance through its steps while it is manually paused, but HPA
+  # auto-scaling will still occur. Typically not explicitly set in the manifest,
+  # but controlled via tools (e.g. kubectl argo rollouts pause). If true at
+  # initial creation of Rollout, replicas are not scaled up automatically
+  # from zero unless manually promoted.
+  paused: null
+  progressDeadlineSeconds: 600
+    # 600
+    # Whether to abort the update when ProgressDeadlineSeconds is exceeded.
+  # Optional and default is false.
+  progressDeadlineAbort: null  # bool
+    # The rollback window provides a way to fast track deployments to
+  # previously deployed versions.
+  # Optional, and by default is not set.
+  rollbackWindow: {}
+    # revisions: 3
 
 ########################################################################
 ### Pod Parameters ###
@@ -266,6 +291,33 @@ httpRoute:
   rules: []
 
 ########################################################################
+### NetworkPolicy ###
+########################################################################
+networkPolicy:
+  # -- Whether to create a NetworkPolicy resource.
+  # @section -- Network parameters
+  enabled: false
+  # -- Annotations for the NetworkPolicy.
+  # @section -- Network parameters
+  annotations: {}
+  # -- Labels for the NetworkPolicy.
+  # @section -- Network parameters
+  labels: {}
+  # -- Pods this policy applies to. Defaults to this release's selector labels when empty.
+  # @section -- Network parameters
+  podSelector: {}
+  # -- (list) Policy types to enforce, e.g. [Ingress, Egress]. Listing a type without
+  # matching rules below denies all traffic of that type.
+  # @section -- Network parameters
+  policyTypes: []
+  # -- (list) Ingress rules, passed through to the NetworkPolicy spec (tpl-rendered).
+  # @section -- Network parameters
+  ingress: []
+  # -- (list) Egress rules, passed through to the NetworkPolicy spec (tpl-rendered).
+  # @section -- Network parameters
+  egress: []
+
+########################################################################
 ### Autoscaling ###
 ########################################################################
 autoscaling:
@@ -294,6 +346,31 @@ autoscaling:
   # -- Additional custom metrics (appended to the generated metrics list).
   # @section -- Autoscaling parameters
   metrics: []
+
+########################################################################
+### Pod Disruption Budget ###
+########################################################################
+podDisruptionBudget:
+  # -- Whether to create a PodDisruptionBudget resource.
+  # @section -- Pod Disruption Budget parameters
+  enabled: false
+  # -- Annotations for the PodDisruptionBudget.
+  # @section -- Pod Disruption Budget parameters
+  annotations: {}
+  # -- Labels for the PodDisruptionBudget.
+  # @section -- Pod Disruption Budget parameters
+  labels: {}
+  # -- (int/string) Minimum number or percentage of pods that must stay available.
+  # Mutually exclusive with maxUnavailable - set this to null to use maxUnavailable.
+  # @section -- Pod Disruption Budget parameters
+  minAvailable: 1
+  # -- (int/string) Maximum number or percentage of pods that may be unavailable.
+  # Mutually exclusive with minAvailable.
+  # @section -- Pod Disruption Budget parameters
+  maxUnavailable: null
+  # -- (string) How unhealthy pods are counted during eviction: IfHealthyBudget or AlwaysAllow.
+  # @section -- Pod Disruption Budget parameters
+  unhealthyPodEvictionPolicy: null
 
 ########################################################################
 ### ConfigMap ###

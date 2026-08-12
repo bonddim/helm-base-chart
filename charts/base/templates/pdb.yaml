@@ -1,0 +1,28 @@
+{{- if .Values.podDisruptionBudget.enabled -}}
+{{- $pdb := .Values.podDisruptionBudget }}
+{{- $hasMin := and (not (kindIs "invalid" $pdb.minAvailable)) (ne (toString $pdb.minAvailable) "") }}
+{{- $hasMax := and (not (kindIs "invalid" $pdb.maxUnavailable)) (ne (toString $pdb.maxUnavailable) "") }}
+{{- if and $hasMin $hasMax }}
+{{- fail "podDisruptionBudget: set only one of minAvailable or maxUnavailable (set podDisruptionBudget.minAvailable=null to use maxUnavailable)" }}
+{{- end }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  {{- with include "base.annotations" (dict "annotations" $pdb.annotations "context" .) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" $pdb.labels "context" .) | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+spec:
+  {{- if $hasMin }}
+  minAvailable: {{ $pdb.minAvailable }}
+  {{- end }}
+  {{- if $hasMax }}
+  maxUnavailable: {{ $pdb.maxUnavailable }}
+  {{- end }}
+  {{- with $pdb.unhealthyPodEvictionPolicy }}
+  unhealthyPodEvictionPolicy: {{ . }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "base.selectorLabels" . | nindent 6 }}
+{{- end }}

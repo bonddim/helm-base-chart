@@ -13,7 +13,7 @@ spec:
   {{- end }}
   selector:
     matchLabels: {{- include "base.selectorLabels" . | nindent 6 }}
-  {{- with .Values.updateStrategy }}
+  {{- with .Values.strategy }}
   updateStrategy: {{- toYaml . | nindent 4 }}
   {{- end }}
   template: {{- include "base.podTemplate" . | nindent 4 }}
