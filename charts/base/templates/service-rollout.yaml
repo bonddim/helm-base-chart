@@ -1,0 +1,3 @@
+{{- if eq .Values.workload "rollout" -}}
+{{- include "base.service" (dict "context" . "name" (include "base.rolloutServiceName" .)) }}
+{{- end }}

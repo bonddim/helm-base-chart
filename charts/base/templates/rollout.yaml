@@ -1,0 +1,51 @@
+{{- if eq .Values.workload "rollout" -}}
+{{- $fullname := include "base.fullname" . }}
+{{- $rolloutServiceName := include "base.rolloutServiceName" . }}
+{{- $strategy := deepCopy (default dict .Values.strategy) }}
+{{- if hasKey $strategy "canary" }}
+  {{- $services := dict "stableService" $fullname "canaryService" $rolloutServiceName }}
+  {{- $_ := set $strategy "canary" (merge (deepCopy (default dict $strategy.canary)) $services) }}
+{{- else }}
+  {{- $services := dict "activeService" $fullname "previewService" $rolloutServiceName }}
+  {{- $_ := set $strategy "blueGreen" (merge (deepCopy (default dict $strategy.blueGreen)) $services) }}
+{{- end }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  {{- with include "base.annotations" (dict "annotations" .Values.annotations "context" .) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 4 }}
+  name: {{ $fullname }}
+spec:
+  {{- if and (not .Values.autoscaling.enabled) (ge (int .Values.replicas) 0) }}
+  replicas: {{ .Values.replicas }}
+  {{- end }}
+  {{- with .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ . }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "base.selectorLabels" . | nindent 6 }}
+  {{- with $strategy }}
+  strategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template: {{- include "base.podTemplate" . | nindent 4 }}
+  {{- with .Values.rollout.analysis }}
+  analysis: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.rollout.minReadySeconds }}
+  minReadySeconds: {{ . }}
+  {{- end }}
+  {{- with .Values.rollout.paused }}
+  paused: {{ . }}
+  {{- end }}
+  {{- with .Values.rollout.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{ . }}
+  {{- end }}
+  {{- with .Values.rollout.progressDeadlineAbort }}
+  progressDeadlineAbort: {{ . }}
+  {{- end }}
+  {{- with .Values.rollout.rollbackWindow }}
+  rollbackWindow: {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

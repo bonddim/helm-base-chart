@@ -45,7 +45,8 @@ labels: {}
 # Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm.
 # @section -- Workload parameters
 replicas: null
-# -- Update strategy for the selected workload. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }
+# -- Update strategy for the selected workload. e.g. { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }.
+# For workload=rollout, the chart merges Service references into this strategy: `stableService`/`activeService`.
 # @section -- Workload parameters
 strategy: {}
 # -- (string) StatefulSet service name. Defaults to the fullname when empty.
@@ -84,7 +85,7 @@ rollout:
     # 600
     # Whether to abort the update when ProgressDeadlineSeconds is exceeded.
   # Optional and default is false.
-  progressDeadlineAbort: null # bool
+  progressDeadlineAbort: null  # bool
     # The rollback window provides a way to fast track deployments to
   # previously deployed versions.
   # Optional, and by default is not set.
