@@ -18,7 +18,7 @@ metadata:
   labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 4 }}
   name: {{ $fullname }}
 spec:
-  {{- if and (not .Values.autoscaling.enabled) (ge (int .Values.replicas) 0) }}
+  {{- if and (not .Values.autoscaling.enabled) (or .Values.replicas (eq .Values.replicas 0)) }}
   replicas: {{ .Values.replicas }}
   {{- end }}
   {{- with .Values.revisionHistoryLimit }}
