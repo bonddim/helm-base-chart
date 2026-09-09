@@ -79,10 +79,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Determine the ServiceAccount name to use.
 */}}
 {{- define "base.serviceAccountName" -}}
+{{- $name := include "base.render.value" (dict "value" .Values.serviceAccount.name "context" .) -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "base.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "base.fullname" .) $name }}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- default "default" $name }}
 {{- end }}
 {{- end }}
 
