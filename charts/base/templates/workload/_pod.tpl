@@ -5,8 +5,8 @@ metadata:
   {{- end }}
   labels: {{- include "base.labels" (dict "labels" .Values.podLabels "context" .) | nindent 4 }}
 spec:
-  {{- with .Values.affinity }}
-  affinity: {{- toYaml . | nindent 4 }}
+  {{- with include "base.affinity" (dict "context" $) }}
+  affinity: {{- . | nindent 4 }}
   {{- end }}
   {{- if ne .Values.automountServiceAccountToken nil }}
   automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}

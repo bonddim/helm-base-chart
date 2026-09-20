@@ -121,9 +121,24 @@ nodeSelector: {}
 # -- Tolerations for pod scheduling.
 # @section -- Workload parameters
 tolerations: []
-# -- Pod affinity/anti-affinity rules.
+# -- Raw pod affinity/anti-affinity rules (tpl-rendered). When set, this replaces the calculated presets below entirely.
 # @section -- Workload parameters
 affinity: {}
+# -- (string) Calculated pod affinity preset: `soft`, `hard`, or empty to disable. Co-locates replicas of this release.
+# @section -- Workload parameters
+podAffinityPreset: ""
+# -- (string) Calculated pod anti-affinity preset: `soft`, `hard`, or empty to disable. Spreads replicas of this release apart.
+# @section -- Workload parameters
+podAntiAffinityPreset: ""
+# -- Calculated node affinity preset, e.g. `{ type: soft, key: topology.kubernetes.io/zone, values: [eu-central-1a] }`. Requires both type (`soft`/`hard`) and key.
+# @section -- Workload parameters
+nodeAffinityPreset:
+  type: ""
+  key: ""
+  values: []
+# -- (string) Topology key used by the pod affinity/anti-affinity presets. Defaults to kubernetes.io/hostname.
+# @section -- Workload parameters
+affinityTopologyKey: ""
 # -- Topology spread constraints.
 # @section -- Workload parameters
 topologySpreadConstraints: []
