@@ -1,0 +1,72 @@
+suite: autoscaling guards
+templates:
+  - autoscaling/hpa.yaml
+tests:
+  - it: renders an HPA for a scalable workload
+    set:
+      autoscaling.enabled: true
+      workload: deployment
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HorizontalPodAutoscaler
+
+  - it: rejects an HPA targeting a DaemonSet
+    set:
+      autoscaling.enabled: true
+      workload: daemonset
+    asserts:
+      - failedTemplate:
+          errorPattern: "cannot scale workload=daemonset"
+
+  - it: rejects an HPA targeting a Job
+    set:
+      autoscaling.enabled: true
+      workload: job
+    asserts:
+      - failedTemplate:
+          errorPattern: "cannot scale workload=job"
+
+  - it: rejects an HPA targeting a CronJob
+    set:
+      autoscaling.enabled: true
+      workload: cronjob
+    asserts:
+      - failedTemplate:
+          errorPattern: "cannot scale workload=cronjob"
+
+  - it: allows an HPA beside a recommendation-only VPA
+    set:
+      autoscaling.enabled: true
+      vpa.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: rejects an HPA beside a VPA in Auto mode
+    set:
+      autoscaling.enabled: true
+      vpa.enabled: true
+      vpa.updatePolicy.updateMode: Auto
+    asserts:
+      - failedTemplate:
+          errorPattern: "HPA and VPA both enabled"
+
+  - it: rejects an HPA beside a VPA in Recreate mode
+    set:
+      autoscaling.enabled: true
+      vpa.enabled: true
+      vpa.updatePolicy.updateMode: Recreate
+    asserts:
+      - failedTemplate:
+          errorPattern: "HPA and VPA both enabled"
+
+  - it: rejects an HPA when updatePolicy is emptied, since the controller then defaults to Auto
+    set:
+      autoscaling.enabled: true
+      vpa.enabled: true
+      vpa.updatePolicy: null
+    asserts:
+      - failedTemplate:
+          errorPattern: "HPA and VPA both enabled"

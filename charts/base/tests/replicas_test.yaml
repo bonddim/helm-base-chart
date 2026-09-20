@@ -1,0 +1,32 @@
+suite: replicas handling
+templates:
+  - workload/deployment.yaml
+tests:
+  - it: leaves replicas unset by default, so the cluster or an HPA decides
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: honours an explicit zero rather than treating it as unset
+    set:
+      replicas: 0
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 0
+
+  - it: honours a positive count
+    set:
+      replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: omits replicas when autoscaling owns them
+    set:
+      replicas: 3
+      autoscaling.enabled: true
+    asserts:
+      - notExists:
+          path: spec.replicas

@@ -1,0 +1,57 @@
+suite: headless service naming
+tests:
+  - it: is not created unless enabled
+    templates:
+      - network/service-headless.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: is headless and suffixed to avoid colliding with the main Service
+    templates:
+      - network/service-headless.yaml
+    set:
+      service.headless.enabled: true
+      service.port: 80
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-headless
+      - equal:
+          path: spec.clusterIP
+          value: None
+
+  - it: honours an explicit serviceName
+    templates:
+      - network/service-headless.yaml
+    set:
+      service.headless.enabled: true
+      service.port: 80
+      serviceName: my-governing-svc
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-governing-svc
+
+  - it: gives the StatefulSet a serviceName matching the headless Service
+    templates:
+      - workload/statefulset.yaml
+    set:
+      workload: statefulset
+      service.headless.enabled: true
+    asserts:
+      - equal:
+          path: spec.serviceName
+          value: RELEASE-NAME-headless
+
+  - it: leaves the StatefulSet serviceName unchanged when headless is disabled
+    templates:
+      - workload/statefulset.yaml
+    set:
+      workload: statefulset
+    asserts:
+      - equal:
+          path: spec.serviceName
+          value: RELEASE-NAME
