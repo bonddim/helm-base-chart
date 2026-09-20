@@ -1,0 +1,34 @@
+{{- if eq .Values.workload "cronjob" -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  {{- with include "base.annotations" (dict "annotations" .Values.annotations "context" .) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+spec:
+  schedule: {{ include "base.render.value" (dict "value" .Values.cronJob.schedule "context" $) | quote }}
+  {{- with .Values.cronJob.timeZone }}
+  timeZone: {{ . }}
+  {{- end }}
+  {{- with .Values.cronJob.concurrencyPolicy }}
+  concurrencyPolicy: {{ . }}
+  {{- end }}
+  {{- if ne .Values.cronJob.startingDeadlineSeconds nil }}
+  startingDeadlineSeconds: {{ .Values.cronJob.startingDeadlineSeconds }}
+  {{- end }}
+  {{- if ne .Values.cronJob.suspend nil }}
+  suspend: {{ .Values.cronJob.suspend }}
+  {{- end }}
+  {{- if ne .Values.cronJob.successfulJobsHistoryLimit nil }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  {{- end }}
+  {{- if ne .Values.cronJob.failedJobsHistoryLimit nil }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  {{- end }}
+  jobTemplate:
+    metadata:
+      labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 8 }}
+    spec: {{- include "base.jobSpec" . | trim | nindent 6 }}
+{{- end }}

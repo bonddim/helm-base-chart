@@ -16,7 +16,7 @@ spec:
   {{- end }}
   selector:
     matchLabels: {{- include "base.selectorLabels" . | nindent 6 }}
-  serviceName: {{ default (include "base.fullname" .) .Values.serviceName }}
+  serviceName: {{ include "base.headlessServiceName" . }}
   {{- with .Values.podManagementPolicy }}
   podManagementPolicy: {{ . }}
   {{- end }}
