@@ -1,0 +1,51 @@
+{{- if .Values.keda.scaledObject.enabled -}}
+{{- $so := .Values.keda.scaledObject }}
+{{- if has .Values.workload (list "daemonset" "job" "cronjob" "scaledjob" "pod") }}
+{{- fail (printf "keda: a ScaledObject cannot scale workload=%s - it needs a workload with a /scale subresource (set keda.scaledObject.enabled=false, or pick deployment, statefulset or rollout)" .Values.workload) }}
+{{- end }}
+{{- if .Values.autoscaling.enabled }}
+{{- fail "keda: scaledObject and autoscaling are both enabled - KEDA creates its own HorizontalPodAutoscaler, so the two would fight over the same target (disable one of them)" }}
+{{- end }}
+{{- $vpaUpdateMode := dig "updateMode" "Auto" (default dict .Values.vpa.updatePolicy) }}
+{{- if and .Values.vpa.enabled (ne $vpaUpdateMode "Off") }}
+{{- fail (printf "keda: scaledObject and VPA both enabled with vpa.updatePolicy.updateMode=%s - they would fight over the same pods (set vpa.updatePolicy.updateMode=Off to keep VPA recommendation-only, or disable one of them)" $vpaUpdateMode) }}
+{{- end }}
+{{- if not $so.triggers }}
+{{- fail "keda: scaledObject.triggers is required - a ScaledObject with no triggers never scales" }}
+{{- end }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  {{- with include "base.annotations" (dict "annotations" $so.annotations "context" $) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" $so.labels "context" .) | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+spec:
+  scaleTargetRef: {{- include "base.targetRef" . | nindent 4 }}
+    {{- with $so.envSourceContainerName }}
+    envSourceContainerName: {{ include "base.render.value" (dict "value" . "context" $) | quote }}
+    {{- end }}
+  {{- if ne $so.pollingInterval nil }}
+  pollingInterval: {{ $so.pollingInterval }}
+  {{- end }}
+  {{- if ne $so.cooldownPeriod nil }}
+  cooldownPeriod: {{ $so.cooldownPeriod }}
+  {{- end }}
+  {{- if ne $so.idleReplicaCount nil }}
+  idleReplicaCount: {{ $so.idleReplicaCount }}
+  {{- end }}
+  {{- if ne $so.minReplicaCount nil }}
+  minReplicaCount: {{ $so.minReplicaCount }}
+  {{- end }}
+  {{- if ne $so.maxReplicaCount nil }}
+  maxReplicaCount: {{ $so.maxReplicaCount }}
+  {{- end }}
+  {{- with $so.fallback }}
+  fallback: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $so.advanced }}
+  advanced: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  triggers: {{- include "base.render.list" (dict "value" $so.triggers "context" $) | nindent 4 }}
+{{- end }}

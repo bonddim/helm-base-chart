@@ -80,7 +80,7 @@ spec:
   nodeSelector: {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- $restartPolicy := .Values.restartPolicy }}
-  {{- if and (not $restartPolicy) (has .Values.workload (list "job" "cronjob")) }}
+  {{- if and (not $restartPolicy) (has .Values.workload (list "job" "cronjob" "scaledjob")) }}
   {{- $restartPolicy = "Never" }}
   {{- end }}
   {{- with $restartPolicy }}

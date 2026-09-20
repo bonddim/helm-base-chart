@@ -1,0 +1,122 @@
+suite: keda scalers
+tests:
+  - it: creates no ScaledObject by default
+    templates:
+      - autoscaling/scaledobject.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: targets the selected workload
+    templates:
+      - autoscaling/scaledobject.yaml
+    set:
+      workload: statefulset
+      keda.scaledObject.enabled: true
+      keda.scaledObject.triggers:
+        - type: cron
+          metadata: {desiredReplicas: "5"}
+    asserts:
+      - isKind:
+          of: ScaledObject
+      - equal:
+          path: spec.scaleTargetRef.kind
+          value: StatefulSet
+      - equal:
+          path: spec.scaleTargetRef.name
+          value: RELEASE-NAME
+
+  - it: rejects a ScaledObject beside an HPA, since KEDA creates its own
+    templates:
+      - autoscaling/scaledobject.yaml
+    set:
+      autoscaling.enabled: true
+      keda.scaledObject.enabled: true
+      keda.scaledObject.triggers:
+        - type: cron
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledObject and autoscaling are both enabled"
+
+  - it: rejects a ScaledObject beside an active VPA
+    templates:
+      - autoscaling/scaledobject.yaml
+    set:
+      vpa.enabled: true
+      vpa.updatePolicy.updateMode: Auto
+      keda.scaledObject.enabled: true
+      keda.scaledObject.triggers:
+        - type: cron
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledObject and VPA both enabled"
+
+  - it: rejects a ScaledObject on a workload with no scale subresource
+    templates:
+      - autoscaling/scaledobject.yaml
+    set:
+      workload: daemonset
+      keda.scaledObject.enabled: true
+      keda.scaledObject.triggers:
+        - type: cron
+    asserts:
+      - failedTemplate:
+          errorPattern: "cannot scale workload=daemonset"
+
+  - it: requires triggers on a ScaledObject
+    templates:
+      - autoscaling/scaledobject.yaml
+    set:
+      keda.scaledObject.enabled: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledObject.triggers is required"
+
+  - it: builds a ScaledJob whose jobTargetRef reuses the shared job spec
+    templates:
+      - workload/scaledjob.yaml
+    set:
+      workload: scaledjob
+      job.backoffLimit: 3
+      keda.scaledJob.triggers:
+        - type: rabbitmq
+    asserts:
+      - isKind:
+          of: ScaledJob
+      - equal:
+          path: spec.jobTargetRef.backoffLimit
+          value: 3
+      - equal:
+          path: spec.jobTargetRef.template.spec.restartPolicy
+          value: Never
+
+  - it: requires triggers on a ScaledJob
+    templates:
+      - workload/scaledjob.yaml
+    set:
+      workload: scaledjob
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledJob.triggers is required"
+
+  - it: leaves replicas to KEDA when a ScaledObject owns them
+    templates:
+      - workload/deployment.yaml
+    set:
+      replicas: 3
+      keda.scaledObject.enabled: true
+      keda.scaledObject.triggers:
+        - type: cron
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: still renders replicas when no autoscaler owns them
+    templates:
+      - workload/deployment.yaml
+    set:
+      replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3

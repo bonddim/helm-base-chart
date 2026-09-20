@@ -1,0 +1,41 @@
+{{- if eq .Values.workload "scaledjob" -}}
+{{- $sj := .Values.keda.scaledJob }}
+{{- if not $sj.triggers }}
+{{- fail "keda: scaledJob.triggers is required - a ScaledJob with no triggers never runs" }}
+{{- end }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  {{- with include "base.annotations" (dict "annotations" (default .Values.annotations $sj.annotations) "context" $) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" (default .Values.labels $sj.labels) "context" .) | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+spec:
+  jobTargetRef: {{- include "base.jobSpec" . | trim | nindent 4 }}
+  {{- if ne $sj.pollingInterval nil }}
+  pollingInterval: {{ $sj.pollingInterval }}
+  {{- end }}
+  {{- if ne $sj.minReplicaCount nil }}
+  minReplicaCount: {{ $sj.minReplicaCount }}
+  {{- end }}
+  {{- if ne $sj.maxReplicaCount nil }}
+  maxReplicaCount: {{ $sj.maxReplicaCount }}
+  {{- end }}
+  {{- if ne $sj.successfulJobsHistoryLimit nil }}
+  successfulJobsHistoryLimit: {{ $sj.successfulJobsHistoryLimit }}
+  {{- end }}
+  {{- if ne $sj.failedJobsHistoryLimit nil }}
+  failedJobsHistoryLimit: {{ $sj.failedJobsHistoryLimit }}
+  {{- end }}
+  {{- with $sj.envSourceContainerName }}
+  envSourceContainerName: {{ include "base.render.value" (dict "value" . "context" $) | quote }}
+  {{- end }}
+  {{- with $sj.rollout }}
+  rollout: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $sj.scalingStrategy }}
+  scalingStrategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  triggers: {{- include "base.render.list" (dict "value" $sj.triggers "context" $) | nindent 4 }}
+{{- end }}
