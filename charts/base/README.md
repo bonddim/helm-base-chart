@@ -1,6 +1,6 @@
 # base
 
-![Version: 0.3.2](https://img.shields.io/badge/Version-0.3.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.3.3](https://img.shields.io/badge/Version-0.3.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Base Helm chart for Kubernetes - fully values-driven.
 
@@ -111,7 +111,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 | httpRoute.annotations | object | `{}` | Annotations for the HTTPRoute. |
 | httpRoute.parentRefs | list | `[]` | Gateway parentRefs this route attaches to. |
 | httpRoute.hostnames | list | `[]` | Hostnames matched by this route. |
-| httpRoute.rules | list | `[]` | Routing rules. backendRefs are auto-populated from the Service. |
+| httpRoute.rules | list | `[{"matches":[{"path":{"type":"PathPrefix","value":"/"}}]}]` | Routing rules. backendRefs are auto-populated from the Service. |
 | networkPolicy.enabled | bool | `false` | Whether to create a NetworkPolicy resource. |
 | networkPolicy.annotations | object | `{}` | Annotations for the NetworkPolicy. |
 | networkPolicy.labels | object | `{}` | Labels for the NetworkPolicy. |
