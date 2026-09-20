@@ -56,7 +56,11 @@ Base Helm chart for Kubernetes - fully values-driven.
 | volumes | object/list | `{}` | Volumes (values are tpl-rendered). |
 | nodeSelector | object | `{}` | Node selector for pod scheduling. |
 | tolerations | list | `[]` | Tolerations for pod scheduling. |
-| affinity | object | `{}` | Pod affinity/anti-affinity rules. |
+| affinity | object | `{}` | Raw pod affinity/anti-affinity rules (tpl-rendered). When set, this replaces the calculated presets below entirely. |
+| podAffinityPreset | string | `""` | Calculated pod affinity preset: `soft`, `hard`, or empty to disable. Co-locates replicas of this release. |
+| podAntiAffinityPreset | string | `""` | Calculated pod anti-affinity preset: `soft`, `hard`, or empty to disable. Spreads replicas of this release apart. |
+| nodeAffinityPreset | object | `{"key":"","type":"","values":[]}` | Calculated node affinity preset, e.g. `{ type: soft, key: topology.kubernetes.io/zone, values: [eu-central-1a] }`. Requires both type (`soft`/`hard`) and key. |
+| affinityTopologyKey | string | `""` | Topology key used by the pod affinity/anti-affinity presets. Defaults to kubernetes.io/hostname. |
 | topologySpreadConstraints | list | `[]` | Topology spread constraints. |
 | dnsPolicy | string | `""` | DNS policy for the pod. |
 | priorityClassName | string | `""` | Priority class name. |
