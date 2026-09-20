@@ -318,34 +318,57 @@ networkPolicy:
   egress: []
 
 ########################################################################
-### Autoscaling ###
+### Horizontal Pod Autoscaling ###
 ########################################################################
 autoscaling:
-  # -- Whether to create an HPA resource (also suppresses Deployment.spec.replicas).
-  # @section -- Autoscaling parameters
+  # -- Whether to create an HPA resource. Rejected with workload=daemonset, and with an active VPA (see vpa.updatePolicy).
+  # @section -- Horizontal Pod Autoscaling parameters
   enabled: false
   # -- Annotations for the HPA.
-  # @section -- Autoscaling parameters
+  # @section -- Horizontal Pod Autoscaling parameters
   annotations: {}
   # -- Labels for the HPA.
-  # @section -- Autoscaling parameters
+  # @section -- Horizontal Pod Autoscaling parameters
   labels: {}
   # -- Minimum number of replicas when autoscaling is enabled.
-  # @section -- Autoscaling parameters
+  # @section -- Horizontal Pod Autoscaling parameters
   minReplicas: 1
   # -- Maximum number of replicas when autoscaling is enabled.
-  # @section -- Autoscaling parameters
+  # @section -- Horizontal Pod Autoscaling parameters
   maxReplicas: 10
   # -- Target CPU utilization percentage.
-  # @section -- Autoscaling parameters
+  # @section -- Horizontal Pod Autoscaling parameters
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
   # -- Advanced scaling behavior.
-  # @section -- Autoscaling parameters
+  # @section -- Horizontal Pod Autoscaling parameters
   behavior: {}
   # -- Additional custom metrics (appended to the generated metrics list).
-  # @section -- Autoscaling parameters
+  # @section -- Horizontal Pod Autoscaling parameters
   metrics: []
+
+########################################################################
+### Vertical Pod Autoscaling ###
+########################################################################
+vpa:
+  # -- Whether to create a VerticalPodAutoscaler resource. Requires the VPA controller in the cluster.
+  # @section -- Vertical Pod Autoscaler parameters
+  enabled: false
+  # -- Annotations for the VerticalPodAutoscaler.
+  # @section -- Vertical Pod Autoscaler parameters
+  annotations: {}
+  # -- Labels for the VerticalPodAutoscaler.
+  # @section -- Vertical Pod Autoscaler parameters
+  labels: {}
+  # -- How the VPA applies its recommendations, e.g. `{ updateMode: Auto, minReplicas: 2 }`. Empty leaves the controller default (updateMode: Auto). Must be `Off` when autoscaling.enabled=true, otherwise both controllers fight over the same pods.
+  # @section -- Vertical Pod Autoscaler parameters
+  updatePolicy: {}
+  # -- Per-container bounds on the recommendation, e.g. `{ containerPolicies: [{ containerName: "*", minAllowed: { cpu: 10m } }] }`.
+  # @section -- Vertical Pod Autoscaler parameters
+  resourcePolicy: {}
+  # -- (object/list) Alternative recommenders to use instead of the default one, e.g. `[{ name: custom-recommender }]`.
+  # @section -- Vertical Pod Autoscaler parameters
+  recommenders: []
 
 ########################################################################
 ### Pod Disruption Budget ###

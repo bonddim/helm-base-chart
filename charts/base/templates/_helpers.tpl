@@ -110,3 +110,25 @@ Usage: {{ include "base.rolloutServiceName" . }}
 {{- define "base.rolloutServiceName" -}}
 {{- printf "%s-rollout" (include "base.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end -}}
+
+{{/*
+Target reference for autoscalers, resolving the workload type to its kind.
+Emits apiVersion/kind/name, to be nindent-ed under scaleTargetRef or targetRef.
+Usage: {{ include "base.targetRef" . | nindent 4 }}
+*/}}
+{{- define "base.targetRef" -}}
+{{- if eq .Values.workload "rollout" -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else if eq .Values.workload "statefulset" -}}
+apiVersion: apps/v1
+kind: StatefulSet
+{{- else if eq .Values.workload "daemonset" -}}
+apiVersion: apps/v1
+kind: DaemonSet
+{{- else -}}
+apiVersion: apps/v1
+kind: Deployment
+{{- end }}
+name: {{ include "base.fullname" . }}
+{{- end -}}

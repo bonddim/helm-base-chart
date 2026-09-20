@@ -1,6 +1,6 @@
 # base
 
-![Version: 0.3.3](https://img.shields.io/badge/Version-0.3.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Base Helm chart for Kubernetes - fully values-driven.
 
@@ -131,11 +131,11 @@ Base Helm chart for Kubernetes - fully values-driven.
 | networkPolicy.ingress | list | `[]` | Ingress rules, passed through to the NetworkPolicy spec (tpl-rendered). |
 | networkPolicy.egress | list | `[]` | Egress rules, passed through to the NetworkPolicy spec (tpl-rendered). |
 
-### Autoscaling parameters
+### Horizontal Pod Autoscaling parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| autoscaling.enabled | bool | `false` | Whether to create an HPA resource (also suppresses Deployment.spec.replicas). |
+| autoscaling.enabled | bool | `false` | Whether to create an HPA resource. Rejected with workload=daemonset, and with an active VPA (see vpa.updatePolicy). |
 | autoscaling.annotations | object | `{}` | Annotations for the HPA. |
 | autoscaling.labels | object | `{}` | Labels for the HPA. |
 | autoscaling.minReplicas | int | `1` | Minimum number of replicas when autoscaling is enabled. |
@@ -143,6 +143,17 @@ Base Helm chart for Kubernetes - fully values-driven.
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage. |
 | autoscaling.behavior | object | `{}` | Advanced scaling behavior. |
 | autoscaling.metrics | list | `[]` | Additional custom metrics (appended to the generated metrics list). |
+
+### Vertical Pod Autoscaler parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| vpa.enabled | bool | `false` | Whether to create a VerticalPodAutoscaler resource. Requires the VPA controller in the cluster. |
+| vpa.annotations | object | `{}` | Annotations for the VerticalPodAutoscaler. |
+| vpa.labels | object | `{}` | Labels for the VerticalPodAutoscaler. |
+| vpa.updatePolicy | object | `{}` | How the VPA applies its recommendations, e.g. `{ updateMode: Auto, minReplicas: 2 }`. Empty leaves the controller default (updateMode: Auto). Must be `Off` when autoscaling.enabled=true, otherwise both controllers fight over the same pods. |
+| vpa.resourcePolicy | object | `{}` | Per-container bounds on the recommendation, e.g. `{ containerPolicies: [{ containerName: "*", minAllowed: { cpu: 10m } }] }`. |
+| vpa.recommenders | object/list | `[]` | Alternative recommenders to use instead of the default one, e.g. `[{ name: custom-recommender }]`. |
 
 ### Pod Disruption Budget parameters
 

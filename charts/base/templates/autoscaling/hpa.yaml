@@ -1,4 +1,11 @@
 {{- if .Values.autoscaling.enabled -}}
+{{- if eq .Values.workload "daemonset" }}
+{{- fail "autoscaling: a HorizontalPodAutoscaler cannot scale a DaemonSet (set autoscaling.enabled=false, or pick a scalable workload)" }}
+{{- end }}
+{{- $vpaUpdateMode := dig "updateMode" "Auto" (default dict .Values.vpa.updatePolicy) }}
+{{- if and .Values.vpa.enabled (ne $vpaUpdateMode "Off") }}
+{{- fail (printf "autoscaling: HPA and VPA both enabled with vpa.updatePolicy.updateMode=%s - they would fight over the same pods (set vpa.updatePolicy.updateMode=Off to keep VPA recommendation-only, or disable one of them)" $vpaUpdateMode) }}
+{{- end }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -8,18 +15,7 @@ metadata:
   labels: {{- include "base.labels" (dict "labels" .Values.autoscaling.labels "context" .) | nindent 4 }}
   name: {{ include "base.fullname" . }}
 spec:
-  scaleTargetRef:
-    {{- if eq .Values.workload "rollout" }}
-    apiVersion: argoproj.io/v1alpha1
-    kind: Rollout
-    {{- else if eq .Values.workload "statefulset" }}
-    apiVersion: apps/v1
-    kind: StatefulSet
-    {{- else }}
-    apiVersion: apps/v1
-    kind: Deployment
-    {{- end }}
-    name: {{ include "base.fullname" . }}
+  scaleTargetRef: {{- include "base.targetRef" . | nindent 4 }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
