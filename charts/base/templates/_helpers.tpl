@@ -104,14 +104,6 @@ Tag defaults to Chart.AppVersion when empty.
 {{- end }}
 
 {{/*
-Defines service name used with the Argo Rollouts workload.
-Usage: {{ include "base.rolloutServiceName" . }}
-*/}}
-{{- define "base.rolloutServiceName" -}}
-{{- printf "%s-rollout" (include "base.fullname" .) | trunc 63 | trimSuffix "-" }}
-{{- end -}}
-
-{{/*
 Target reference for autoscalers, resolving the workload type to its kind.
 Emits apiVersion/kind/name, to be nindent-ed under scaleTargetRef or targetRef.
 Usage: {{ include "base.targetRef" . | nindent 4 }}
@@ -126,9 +118,40 @@ kind: StatefulSet
 {{- else if eq .Values.workload "daemonset" -}}
 apiVersion: apps/v1
 kind: DaemonSet
+{{- else if eq .Values.workload "job" -}}
+apiVersion: batch/v1
+kind: Job
+{{- else if eq .Values.workload "cronjob" -}}
+apiVersion: batch/v1
+kind: CronJob
 {{- else -}}
 apiVersion: apps/v1
 kind: Deployment
 {{- end }}
 name: {{ include "base.fullname" . }}
+{{- end -}}
+
+{{/*
+Defines service name used with the Argo Rollouts workload.
+Usage: {{ include "base.rolloutServiceName" . }}
+*/}}
+{{- define "base.rolloutServiceName" -}}
+{{- printf "%s-rollout" (include "base.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{/*
+Name of the governing (headless) Service for a StatefulSet.
+Honours an explicit `serviceName`; otherwise suffixes the fullname when the
+headless Service is enabled, so it cannot collide with the main Service.
+Falls back to the plain fullname when headless is disabled.
+Usage: {{ include "base.headlessServiceName" . }}
+*/}}
+{{- define "base.headlessServiceName" -}}
+{{- if .Values.serviceName -}}
+{{- .Values.serviceName -}}
+{{- else if .Values.service.headless.enabled -}}
+{{- printf "%s-headless" (include "base.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- include "base.fullname" . -}}
+{{- end -}}
 {{- end -}}

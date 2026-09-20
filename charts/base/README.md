@@ -1,6 +1,6 @@
 # base
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.5.1](https://img.shields.io/badge/Version-0.5.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Base Helm chart for Kubernetes - fully values-driven.
 
@@ -36,7 +36,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| workload | string | `"deployment"` | Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, pod or null |
+| workload | string | `"deployment"` | Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, job, cronjob, pod or null |
 | annotations | object | `{}` | Additional annotations on the Workload resource itself. |
 | labels | object | `{}` | Additional labels on the Deployment resource itself. |
 | replicas | int | `nil` | Number of pod replicas. Ignored when autoscaling.enabled=true. Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm. |
@@ -62,6 +62,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 | nodeAffinityPreset | object | `{"key":"","type":"","values":[]}` | Calculated node affinity preset, e.g. `{ type: soft, key: topology.kubernetes.io/zone, values: [eu-central-1a] }`. Requires both type (`soft`/`hard`) and key. |
 | affinityTopologyKey | string | `""` | Topology key used by the pod affinity/anti-affinity presets. Defaults to kubernetes.io/hostname. |
 | topologySpreadConstraints | list | `[]` | Topology spread constraints. |
+| restartPolicy | string | `""` | Pod restart policy. Defaults to Never for job/cronjob workloads, and to the cluster default otherwise. |
 | dnsPolicy | string | `""` | DNS policy for the pod. |
 | priorityClassName | string | `""` | Priority class name. |
 | terminationGracePeriodSeconds | int | `nil` | Grace period (seconds) before forceful termination. |
@@ -83,6 +84,31 @@ Base Helm chart for Kubernetes - fully values-driven.
 | lifecycle | object | `{}` | Container lifecycle hooks. |
 | volumeMounts | object/list | `{}` | Volume mounts (tpl-rendered). Key = volume name. |
 
+### Job parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| job.backoffLimit | int | `nil` | Number of retries before marking the Job failed. |
+| job.completions | int | `nil` | Number of successful completions required. |
+| job.completionMode | string | `""` | Completion mode: NonIndexed or Indexed. |
+| job.parallelism | int | `nil` | Number of pods to run in parallel. |
+| job.activeDeadlineSeconds | int | `nil` | Seconds the Job may run before it is terminated. |
+| job.ttlSecondsAfterFinished | int | `nil` | Seconds after finishing before the Job is eligible for automatic deletion. |
+| job.suspend | bool | `nil` | Suspend the Job without deleting it. |
+| job.podFailurePolicy | object | `{}` | Rules for handling specific container exit codes, e.g. `{ rules: [...] }`. |
+
+### CronJob parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| cronJob.schedule | string | `"0 * * * *"` | Cron schedule in standard cron format (tpl-rendered). |
+| cronJob.timeZone | string | `""` | Time zone the schedule is interpreted in, e.g. Europe/Kyiv. Requires Kubernetes 1.27+. |
+| cronJob.concurrencyPolicy | string | `""` | How to treat concurrent executions: Allow, Forbid or Replace. |
+| cronJob.startingDeadlineSeconds | int | `nil` | Seconds by which a missed schedule may still be started. |
+| cronJob.suspend | bool | `nil` | Suspend subsequent executions. |
+| cronJob.successfulJobsHistoryLimit | int | `nil` | Number of successful finished Jobs to retain. |
+| cronJob.failedJobsHistoryLimit | int | `nil` | Number of failed finished Jobs to retain. |
+
 ### Rollout parameters (`workload=rollout`)
 
 | Key | Type | Default | Description |
@@ -102,6 +128,10 @@ Base Helm chart for Kubernetes - fully values-driven.
 | serviceAccount.annotations | object | `{}` | Annotations for the ServiceAccount. |
 | serviceAccount.automount | bool | `nil` | Automatically mount API credentials. |
 | serviceAccount.name | string | `""` | Name of the ServiceAccount. Auto-generated from fullname if empty and create=true. |
+| rbac.create | bool | `false` | Whether to create a Role and RoleBinding for the ServiceAccount. |
+| rbac.annotations | object | `{}` | Annotations for the Role and RoleBinding. |
+| rbac.labels | object | `{}` | Labels for the Role and RoleBinding. |
+| rbac.rules | list | `[]` | Policy rules for the Role (tpl-rendered), e.g. `[{ apiGroups: [""], resources: [pods], verbs: [get, list] }]`. |
 
 ### Network parameters
 
@@ -115,6 +145,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 | service.protocol | string | `"TCP"` | Protocol for the primary port. |
 | service.nodePort | string | `nil` | NodePort value (only applies to NodePort/LoadBalancer service types). |
 | service.extraPorts | object | `{}` | Extra ports  Key is the port name. |
+| service.headless | object | `{"annotations":{},"enabled":false,"labels":{},"publishNotReadyAddresses":true}` | Headless Service, exposing each pod under its own DNS name. Required for stable per-pod DNS with workload=statefulset. |
 | ingress.enabled | bool | `false` | Whether to create an Ingress resource. |
 | ingress.annotations | object | `{}` | Annotations for the Ingress. |
 | ingress.className | string | `""` | Ingress class name. |
@@ -155,7 +186,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 | vpa.enabled | bool | `false` | Whether to create a VerticalPodAutoscaler resource. Requires the VPA controller in the cluster. |
 | vpa.annotations | object | `{}` | Annotations for the VerticalPodAutoscaler. |
 | vpa.labels | object | `{}` | Labels for the VerticalPodAutoscaler. |
-| vpa.updatePolicy | object | `{}` | How the VPA applies its recommendations, e.g. `{ updateMode: Auto, minReplicas: 2 }`. Empty leaves the controller default (updateMode: Auto). Must be `Off` when autoscaling.enabled=true, otherwise both controllers fight over the same pods. |
+| vpa.updatePolicy | object | `{"updateMode":"Off"}` | How the VPA applies its recommendations, e.g. `{ updateMode: Auto, minReplicas: 2 }`. Defaults to recommendation-only. Any mode other than `Off` is rejected when autoscaling.enabled=true, since both controllers would fight over the same pods. Note `Off` must stay quoted, or YAML parses it as false. |
 | vpa.resourcePolicy | object | `{}` | Per-container bounds on the recommendation, e.g. `{ containerPolicies: [{ containerName: "*", minAllowed: { cpu: 10m } }] }`. |
 | vpa.recommenders | object/list | `[]` | Alternative recommenders to use instead of the default one, e.g. `[{ name: custom-recommender }]`. |
 
@@ -170,6 +201,21 @@ Base Helm chart for Kubernetes - fully values-driven.
 | podDisruptionBudget.maxUnavailable | int/string | `nil` | Maximum number or percentage of pods that may be unavailable. Mutually exclusive with minAvailable. |
 | podDisruptionBudget.unhealthyPodEvictionPolicy | string | `nil` | How unhealthy pods are counted during eviction: IfHealthyBudget or AlwaysAllow. |
 
+### Storage parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| persistence.enabled | bool | `false` | Whether to create a PersistentVolumeClaim. |
+| persistence.annotations | object | `{}` | Annotations for the PersistentVolumeClaim. |
+| persistence.labels | object | `{}` | Labels for the PersistentVolumeClaim. |
+| persistence.accessModes | list | `["ReadWriteOnce"]` | Access modes for the volume. |
+| persistence.size | string | `"8Gi"` | Requested size of the volume. |
+| persistence.storageClassName | string | `""` | StorageClass to use. Empty uses the cluster default; set to "-" to disable dynamic provisioning. |
+| persistence.volumeMode | string | `""` | Volume mode: Filesystem or Block. |
+| persistence.volumeName | string | `""` | Bind to a specific PersistentVolume by name. |
+| persistence.selector | object | `{}` | Label selector to bind an existing volume. |
+| persistence.dataSource | object | `{}` | Source to populate the volume from, e.g. a snapshot. |
+
 ### ConfigMap parameters
 
 | Key | Type | Default | Description |
@@ -178,6 +224,17 @@ Base Helm chart for Kubernetes - fully values-driven.
 | configMap.annotations | object | `{}` | Annotations for the ConfigMap. |
 | configMap.labels | object | `{}` | Labels for the ConfigMap. |
 | configMap.data | object | `{}` | Key/value data for the ConfigMap. |
+
+### Secret parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| secret.enabled | bool | `false` | Whether to create a Secret resource. |
+| secret.annotations | object | `{}` | Annotations for the Secret. |
+| secret.labels | object | `{}` | Labels for the Secret. |
+| secret.type | string | `"Opaque"` | Secret type. |
+| secret.stringData | object | `{}` | Plaintext key/value pairs (tpl-rendered), encoded by Kubernetes. Prefer sourcing these from a secret manager at deploy time rather than committing them. |
+| secret.data | object | `{}` | Pre-encoded base64 key/value pairs, passed through untouched. |
 
 ### Extras
 

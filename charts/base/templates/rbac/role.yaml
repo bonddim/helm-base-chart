@@ -1,0 +1,14 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  {{- with include "base.annotations" (dict "annotations" .Values.rbac.annotations "context" $) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" .Values.rbac.labels "context" .) | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+rules:
+  {{- with .Values.rbac.rules }}
+  {{- include "base.render.value" (dict "value" . "context" $) | nindent 2 }}
+  {{- end }}
+{{- end }}

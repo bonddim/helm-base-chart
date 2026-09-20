@@ -1,0 +1,11 @@
+{{- if eq .Values.workload "job" -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  {{- with include "base.annotations" (dict "annotations" .Values.annotations "context" .) }}
+  annotations: {{- . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 4 }}
+  name: {{ include "base.fullname" . }}
+spec: {{- include "base.jobSpec" . | trim | nindent 2 }}
+{{- end }}

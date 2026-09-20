@@ -32,7 +32,7 @@ commonAnnotations: {}
 ########################################################################
 ### Workload ###
 ########################################################################
-# -- Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, pod or null
+# -- Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, job, cronjob, pod or null
 # @section -- Workload parameters
 workload: deployment
 # -- Additional annotations on the Workload resource itself.
@@ -64,6 +64,60 @@ persistentVolumeClaimRetentionPolicy: {}
 # -- (int) Number of old ReplicaSets to retain.
 # @section -- Workload parameters
 revisionHistoryLimit: null
+
+########################################################################
+### Job / CronJob ###
+########################################################################
+# Job parameters. Applicable when workload=job, and to the jobTemplate when workload=cronjob.
+job:
+  # -- (int) Number of retries before marking the Job failed.
+  # @section -- Job parameters
+  backoffLimit: null
+  # -- (int) Number of successful completions required.
+  # @section -- Job parameters
+  completions: null
+  # -- (string) Completion mode: NonIndexed or Indexed.
+  # @section -- Job parameters
+  completionMode: ""
+  # -- (int) Number of pods to run in parallel.
+  # @section -- Job parameters
+  parallelism: null
+  # -- (int) Seconds the Job may run before it is terminated.
+  # @section -- Job parameters
+  activeDeadlineSeconds: null
+  # -- (int) Seconds after finishing before the Job is eligible for automatic deletion.
+  # @section -- Job parameters
+  ttlSecondsAfterFinished: null
+  # -- (bool) Suspend the Job without deleting it.
+  # @section -- Job parameters
+  suspend: null
+  # -- Rules for handling specific container exit codes, e.g. `{ rules: [...] }`.
+  # @section -- Job parameters
+  podFailurePolicy: {}
+
+# CronJob parameters. Only applicable when workload=cronjob.
+cronJob:
+  # -- (string) Cron schedule in standard cron format (tpl-rendered).
+  # @section -- CronJob parameters
+  schedule: "0 * * * *"
+  # -- (string) Time zone the schedule is interpreted in, e.g. Europe/Kyiv. Requires Kubernetes 1.27+.
+  # @section -- CronJob parameters
+  timeZone: ""
+  # -- (string) How to treat concurrent executions: Allow, Forbid or Replace.
+  # @section -- CronJob parameters
+  concurrencyPolicy: ""
+  # -- (int) Seconds by which a missed schedule may still be started.
+  # @section -- CronJob parameters
+  startingDeadlineSeconds: null
+  # -- (bool) Suspend subsequent executions.
+  # @section -- CronJob parameters
+  suspend: null
+  # -- (int) Number of successful finished Jobs to retain.
+  # @section -- CronJob parameters
+  successfulJobsHistoryLimit: null
+  # -- (int) Number of failed finished Jobs to retain.
+  # @section -- CronJob parameters
+  failedJobsHistoryLimit: null
 
 # Argo Rollouts parameters. Only applicable when workload=rollout.
 # Full field reference:
@@ -142,6 +196,9 @@ affinityTopologyKey: ""
 # -- Topology spread constraints.
 # @section -- Workload parameters
 topologySpreadConstraints: []
+# -- (string) Pod restart policy. Defaults to Never for job/cronjob workloads, and to the cluster default otherwise.
+# @section -- Workload parameters
+restartPolicy: ""
 # -- DNS policy for the pod.
 # @section -- Workload parameters
 dnsPolicy: ""
@@ -226,6 +283,20 @@ serviceAccount:
   # @section -- Security parameters
   name: ""
 
+rbac:
+  # -- Whether to create a Role and RoleBinding for the ServiceAccount.
+  # @section -- Security parameters
+  create: false
+  # -- Annotations for the Role and RoleBinding.
+  # @section -- Security parameters
+  annotations: {}
+  # -- Labels for the Role and RoleBinding.
+  # @section -- Security parameters
+  labels: {}
+  # -- Policy rules for the Role (tpl-rendered), e.g. `[{ apiGroups: [""], resources: [pods], verbs: [get, list] }]`.
+  # @section -- Security parameters
+  rules: []
+
 ########################################################################
 ### Network ###
 ########################################################################
@@ -254,6 +325,13 @@ service:
   # -- Extra ports  Key is the port name.
   # @section -- Network parameters
   extraPorts: {}
+  # -- Headless Service, exposing each pod under its own DNS name. Required for stable per-pod DNS with workload=statefulset.
+  # @section -- Network parameters
+  headless:
+    enabled: false
+    annotations: {}
+    labels: {}
+    publishNotReadyAddresses: true
 
 ingress:
   # -- Whether to create an Ingress resource.
@@ -375,9 +453,10 @@ vpa:
   # -- Labels for the VerticalPodAutoscaler.
   # @section -- Vertical Pod Autoscaler parameters
   labels: {}
-  # -- How the VPA applies its recommendations, e.g. `{ updateMode: Auto, minReplicas: 2 }`. Empty leaves the controller default (updateMode: Auto). Must be `Off` when autoscaling.enabled=true, otherwise both controllers fight over the same pods.
+  # -- How the VPA applies its recommendations, e.g. `{ updateMode: Auto, minReplicas: 2 }`. Defaults to recommendation-only. Any mode other than `Off` is rejected when autoscaling.enabled=true, since both controllers would fight over the same pods. Note `Off` must stay quoted, or YAML parses it as false.
   # @section -- Vertical Pod Autoscaler parameters
-  updatePolicy: {}
+  updatePolicy:
+    updateMode: "Off"
   # -- Per-container bounds on the recommendation, e.g. `{ containerPolicies: [{ containerName: "*", minAllowed: { cpu: 10m } }] }`.
   # @section -- Vertical Pod Autoscaler parameters
   resourcePolicy: {}
@@ -411,6 +490,42 @@ podDisruptionBudget:
   unhealthyPodEvictionPolicy: null
 
 ########################################################################
+### Storage ###
+########################################################################
+persistence:
+  # -- Whether to create a PersistentVolumeClaim.
+  # @section -- Storage parameters
+  enabled: false
+  # -- Annotations for the PersistentVolumeClaim.
+  # @section -- Storage parameters
+  annotations: {}
+  # -- Labels for the PersistentVolumeClaim.
+  # @section -- Storage parameters
+  labels: {}
+  # -- Access modes for the volume.
+  # @section -- Storage parameters
+  accessModes:
+    - ReadWriteOnce
+  # -- Requested size of the volume.
+  # @section -- Storage parameters
+  size: 8Gi
+  # -- (string) StorageClass to use. Empty uses the cluster default; set to "-" to disable dynamic provisioning.
+  # @section -- Storage parameters
+  storageClassName: ""
+  # -- (string) Volume mode: Filesystem or Block.
+  # @section -- Storage parameters
+  volumeMode: ""
+  # -- (string) Bind to a specific PersistentVolume by name.
+  # @section -- Storage parameters
+  volumeName: ""
+  # -- Label selector to bind an existing volume.
+  # @section -- Storage parameters
+  selector: {}
+  # -- Source to populate the volume from, e.g. a snapshot.
+  # @section -- Storage parameters
+  dataSource: {}
+
+########################################################################
 ### ConfigMap ###
 ########################################################################
 configMap:
@@ -425,6 +540,26 @@ configMap:
   labels: {}
   # -- Key/value data for the ConfigMap.
   # @section -- ConfigMap parameters
+  data: {}
+
+secret:
+  # -- Whether to create a Secret resource.
+  # @section -- Secret parameters
+  enabled: false
+  # -- Annotations for the Secret.
+  # @section -- Secret parameters
+  annotations: {}
+  # -- Labels for the Secret.
+  # @section -- Secret parameters
+  labels: {}
+  # -- Secret type.
+  # @section -- Secret parameters
+  type: Opaque
+  # -- Plaintext key/value pairs (tpl-rendered), encoded by Kubernetes. Prefer sourcing these from a secret manager at deploy time rather than committing them.
+  # @section -- Secret parameters
+  stringData: {}
+  # -- Pre-encoded base64 key/value pairs, passed through untouched.
+  # @section -- Secret parameters
   data: {}
 
 ########################################################################

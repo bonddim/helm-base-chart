@@ -22,11 +22,17 @@ repos:
 
   - repo: local
     hooks:
-      - id: helm-chart-testing
+      - id: ct
         name: Helm Chart Testing
         language: docker_image
-        alias: ct
         files: "^charts/"
         pass_filenames: false
         require_serial: false
         entry: quay.io/helmpack/chart-testing ct lint
+      - id: unittest
+        name: Helm Unittest
+        language: docker_image
+        files: "^charts/"
+        pass_filenames: false
+        require_serial: false
+        entry: helmunittest/helm-unittest charts/base

@@ -1,6 +1,6 @@
 {{- if .Values.autoscaling.enabled -}}
-{{- if eq .Values.workload "daemonset" }}
-{{- fail "autoscaling: a HorizontalPodAutoscaler cannot scale a DaemonSet (set autoscaling.enabled=false, or pick a scalable workload)" }}
+{{- if has .Values.workload (list "daemonset" "job" "cronjob") }}
+{{- fail (printf "autoscaling: a HorizontalPodAutoscaler cannot scale workload=%s (set autoscaling.enabled=false, or pick a scalable workload)" .Values.workload) }}
 {{- end }}
 {{- $vpaUpdateMode := dig "updateMode" "Auto" (default dict .Values.vpa.updatePolicy) }}
 {{- if and .Values.vpa.enabled (ne $vpaUpdateMode "Off") }}

@@ -79,6 +79,13 @@ spec:
   {{- with .Values.nodeSelector }}
   nodeSelector: {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- $restartPolicy := .Values.restartPolicy }}
+  {{- if and (not $restartPolicy) (has .Values.workload (list "job" "cronjob")) }}
+  {{- $restartPolicy = "Never" }}
+  {{- end }}
+  {{- with $restartPolicy }}
+  restartPolicy: {{ . }}
+  {{- end }}
   {{- with .Values.podSecurityContext }}
   securityContext: {{- toYaml . | nindent 4 }}
   {{- end }}

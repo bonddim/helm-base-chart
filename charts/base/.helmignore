@@ -22,3 +22,5 @@
 .idea/
 *.tmproj
 .vscode/
+# Chart tests are not part of the released artifact
+tests/

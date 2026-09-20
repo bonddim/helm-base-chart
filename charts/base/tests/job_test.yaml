@@ -1,0 +1,67 @@
+suite: job and cronjob
+tests:
+  - it: defaults the Job restartPolicy to Never, which the API requires
+    templates:
+      - workload/job.yaml
+    set:
+      workload: job
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: Never
+
+  - it: defaults the CronJob pod restartPolicy to Never
+    templates:
+      - workload/cronjob.yaml
+    set:
+      workload: cronjob
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.restartPolicy
+          value: Never
+
+  - it: lets restartPolicy be overridden
+    templates:
+      - workload/job.yaml
+    set:
+      workload: job
+      restartPolicy: OnFailure
+    asserts:
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: OnFailure
+
+  - it: leaves restartPolicy unset for long-running workloads
+    templates:
+      - workload/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.restartPolicy
+
+  - it: omits job fields that are not configured
+    templates:
+      - workload/job.yaml
+    set:
+      workload: job
+    asserts:
+      - notExists:
+          path: spec.backoffLimit
+      - notExists:
+          path: spec.parallelism
+
+  - it: shares the job spec with the CronJob jobTemplate
+    templates:
+      - workload/cronjob.yaml
+    set:
+      workload: cronjob
+      job.backoffLimit: 4
+      cronJob.schedule: "*/5 * * * *"
+    asserts:
+      - equal:
+          path: spec.schedule
+          value: "*/5 * * * *"
+      - equal:
+          path: spec.jobTemplate.spec.backoffLimit
+          value: 4

@@ -8,15 +8,15 @@ metadata:
   labels: {{- include "base.labels" (dict "labels" .Values.labels "context" .) | nindent 4 }}
   name: {{ include "base.fullname" . }}
 spec:
-  {{- if and (not .Values.autoscaling.enabled) (or .Values.replicas (eq .Values.replicas 0)) }}
-  replicas: {{ .Values.replicas }}
+  {{- if and (not .Values.autoscaling.enabled) (not (kindIs "invalid" .Values.replicas)) }}
+  replicas: {{ int .Values.replicas }}
   {{- end }}
   {{- with .Values.revisionHistoryLimit }}
   revisionHistoryLimit: {{ . }}
   {{- end }}
   selector:
     matchLabels: {{- include "base.selectorLabels" . | nindent 6 }}
-  serviceName: {{ default (include "base.fullname" .) .Values.serviceName }}
+  serviceName: {{ include "base.headlessServiceName" . }}
   {{- with .Values.podManagementPolicy }}
   podManagementPolicy: {{ . }}
   {{- end }}
