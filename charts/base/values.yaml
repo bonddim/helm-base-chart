@@ -65,7 +65,6 @@ persistentVolumeClaimRetentionPolicy: {}
 # @section -- Workload parameters
 revisionHistoryLimit: null
 
-
 # -- Rollout parameters. Only applicable when workload=rollout.
 # https://argo-rollouts.readthedocs.io/en/stable/features/specification/
 rollout:
@@ -288,7 +287,11 @@ httpRoute:
   hostnames: []
   # -- Routing rules. backendRefs are auto-populated from the Service.
   # @section -- Network parameters
-  rules: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
 
 ########################################################################
 ### NetworkPolicy ###
