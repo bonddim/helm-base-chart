@@ -124,6 +124,9 @@ kind: Job
 {{- else if eq .Values.workload "cronjob" -}}
 apiVersion: batch/v1
 kind: CronJob
+{{- else if eq .Values.workload "scaledjob" -}}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
 {{- else -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -154,4 +157,13 @@ Usage: {{ include "base.headlessServiceName" . }}
 {{- else -}}
 {{- include "base.fullname" . -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Whether an autoscaler owns the replica count, in which case the workload must
+not set spec.replicas and fight it.
+Usage: {{ if include "base.replicasManaged" . }}
+*/}}
+{{- define "base.replicasManaged" -}}
+{{- if or .Values.autoscaling.enabled .Values.keda.scaledObject.enabled -}}true{{- end -}}
 {{- end -}}

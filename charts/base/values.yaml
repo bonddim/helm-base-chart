@@ -32,7 +32,7 @@ commonAnnotations: {}
 ########################################################################
 ### Workload ###
 ########################################################################
-# -- Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, job, cronjob, pod or null
+# -- Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, job, cronjob, scaledjob, pod or null
 # @section -- Workload parameters
 workload: deployment
 # -- Additional annotations on the Workload resource itself.
@@ -463,6 +463,87 @@ vpa:
   # -- (object/list) Alternative recommenders to use instead of the default one, e.g. `[{ name: custom-recommender }]`.
   # @section -- Vertical Pod Autoscaler parameters
   recommenders: []
+
+########################################################################
+### KEDA ###
+########################################################################
+keda:
+  # ScaledObject scales an existing workload. KEDA manages the HorizontalPodAutoscaler
+  # itself, so autoscaling.enabled must stay false.
+  scaledObject:
+    # -- Whether to create a KEDA ScaledObject. Requires the KEDA controller in the cluster.
+    # @section -- KEDA parameters
+    enabled: false
+    # -- Annotations for the ScaledObject.
+    # @section -- KEDA parameters
+    annotations: {}
+    # -- Labels for the ScaledObject.
+    # @section -- KEDA parameters
+    labels: {}
+    # -- (int) Seconds between trigger checks.
+    # @section -- KEDA parameters
+    pollingInterval: null
+    # -- (int) Seconds to wait after the last trigger fires before scaling back down.
+    # @section -- KEDA parameters
+    cooldownPeriod: null
+    # -- (int) Replica count to hold while no trigger is active. Enables scale-to-zero when set to 0.
+    # @section -- KEDA parameters
+    idleReplicaCount: null
+    # -- (int) Minimum replicas KEDA scales down to.
+    # @section -- KEDA parameters
+    minReplicaCount: null
+    # -- (int) Maximum replicas KEDA scales up to.
+    # @section -- KEDA parameters
+    maxReplicaCount: null
+    # -- (string) Container to read trigger environment variables from.
+    # @section -- KEDA parameters
+    envSourceContainerName: ""
+    # -- Replica count to fall back to when a trigger is failing, e.g. `{ failureThreshold: 3, replicas: 2 }`.
+    # @section -- KEDA parameters
+    fallback: {}
+    # -- Advanced options, e.g. `{ restoreToOriginalReplicaCount: true, horizontalPodAutoscalerConfig: {...} }`.
+    # @section -- KEDA parameters
+    advanced: {}
+    # -- (object/list) Scaling triggers (tpl-rendered). Required, e.g. `[{ type: cron, metadata: {...} }]`.
+    # @section -- KEDA parameters
+    triggers: []
+
+  # ScaledJob creates Jobs from the chart's pod template. Selected with workload=scaledjob,
+  # which makes it mutually exclusive with the job and cronjob workloads.
+  scaledJob:
+    # -- Annotations for the ScaledJob. Defaults to the workload annotations.
+    # @section -- KEDA parameters
+    annotations: {}
+    # -- Labels for the ScaledJob. Defaults to the workload labels.
+    # @section -- KEDA parameters
+    labels: {}
+    # -- (int) Seconds between trigger checks.
+    # @section -- KEDA parameters
+    pollingInterval: null
+    # -- (int) Minimum number of Jobs to keep running.
+    # @section -- KEDA parameters
+    minReplicaCount: null
+    # -- (int) Maximum number of Jobs to run concurrently.
+    # @section -- KEDA parameters
+    maxReplicaCount: null
+    # -- (int) Number of successful finished Jobs to retain.
+    # @section -- KEDA parameters
+    successfulJobsHistoryLimit: null
+    # -- (int) Number of failed finished Jobs to retain.
+    # @section -- KEDA parameters
+    failedJobsHistoryLimit: null
+    # -- (string) Container to read trigger environment variables from.
+    # @section -- KEDA parameters
+    envSourceContainerName: ""
+    # -- How running Jobs are handled on update, e.g. `{ strategy: gradual, propagationPolicy: foreground }`.
+    # @section -- KEDA parameters
+    rollout: {}
+    # -- Strategy for deciding how many Jobs to create, e.g. `{ strategy: accurate }`.
+    # @section -- KEDA parameters
+    scalingStrategy: {}
+    # -- (object/list) Scaling triggers (tpl-rendered). Required, e.g. `[{ type: rabbitmq, metadata: {...} }]`.
+    # @section -- KEDA parameters
+    triggers: []
 
 ########################################################################
 ### Pod Disruption Budget ###

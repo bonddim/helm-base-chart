@@ -1,6 +1,6 @@
 # base
 
-![Version: 0.5.1](https://img.shields.io/badge/Version-0.5.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Base Helm chart for Kubernetes - fully values-driven.
 
@@ -36,7 +36,7 @@ Base Helm chart for Kubernetes - fully values-driven.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| workload | string | `"deployment"` | Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, job, cronjob, pod or null |
+| workload | string | `"deployment"` | Workload type to deploy. One of: deployment, daemonset, statefulset, rollout, job, cronjob, scaledjob, pod or null |
 | annotations | object | `{}` | Additional annotations on the Workload resource itself. |
 | labels | object | `{}` | Additional labels on the Deployment resource itself. |
 | replicas | int | `nil` | Number of pod replicas. Ignored when autoscaling.enabled=true. Must be >= 0 if specified. null by default, which defaults to 1 and not controlled by Helm. |
@@ -189,6 +189,34 @@ Base Helm chart for Kubernetes - fully values-driven.
 | vpa.updatePolicy | object | `{"updateMode":"Off"}` | How the VPA applies its recommendations, e.g. `{ updateMode: Auto, minReplicas: 2 }`. Defaults to recommendation-only. Any mode other than `Off` is rejected when autoscaling.enabled=true, since both controllers would fight over the same pods. Note `Off` must stay quoted, or YAML parses it as false. |
 | vpa.resourcePolicy | object | `{}` | Per-container bounds on the recommendation, e.g. `{ containerPolicies: [{ containerName: "*", minAllowed: { cpu: 10m } }] }`. |
 | vpa.recommenders | object/list | `[]` | Alternative recommenders to use instead of the default one, e.g. `[{ name: custom-recommender }]`. |
+
+### KEDA parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| keda.scaledObject.enabled | bool | `false` | Whether to create a KEDA ScaledObject. Requires the KEDA controller in the cluster. |
+| keda.scaledObject.annotations | object | `{}` | Annotations for the ScaledObject. |
+| keda.scaledObject.labels | object | `{}` | Labels for the ScaledObject. |
+| keda.scaledObject.pollingInterval | int | `nil` | Seconds between trigger checks. |
+| keda.scaledObject.cooldownPeriod | int | `nil` | Seconds to wait after the last trigger fires before scaling back down. |
+| keda.scaledObject.idleReplicaCount | int | `nil` | Replica count to hold while no trigger is active. Enables scale-to-zero when set to 0. |
+| keda.scaledObject.minReplicaCount | int | `nil` | Minimum replicas KEDA scales down to. |
+| keda.scaledObject.maxReplicaCount | int | `nil` | Maximum replicas KEDA scales up to. |
+| keda.scaledObject.envSourceContainerName | string | `""` | Container to read trigger environment variables from. |
+| keda.scaledObject.fallback | object | `{}` | Replica count to fall back to when a trigger is failing, e.g. `{ failureThreshold: 3, replicas: 2 }`. |
+| keda.scaledObject.advanced | object | `{}` | Advanced options, e.g. `{ restoreToOriginalReplicaCount: true, horizontalPodAutoscalerConfig: {...} }`. |
+| keda.scaledObject.triggers | object/list | `[]` | Scaling triggers (tpl-rendered). Required, e.g. `[{ type: cron, metadata: {...} }]`. |
+| keda.scaledJob.annotations | object | `{}` | Annotations for the ScaledJob. Defaults to the workload annotations. |
+| keda.scaledJob.labels | object | `{}` | Labels for the ScaledJob. Defaults to the workload labels. |
+| keda.scaledJob.pollingInterval | int | `nil` | Seconds between trigger checks. |
+| keda.scaledJob.minReplicaCount | int | `nil` | Minimum number of Jobs to keep running. |
+| keda.scaledJob.maxReplicaCount | int | `nil` | Maximum number of Jobs to run concurrently. |
+| keda.scaledJob.successfulJobsHistoryLimit | int | `nil` | Number of successful finished Jobs to retain. |
+| keda.scaledJob.failedJobsHistoryLimit | int | `nil` | Number of failed finished Jobs to retain. |
+| keda.scaledJob.envSourceContainerName | string | `""` | Container to read trigger environment variables from. |
+| keda.scaledJob.rollout | object | `{}` | How running Jobs are handled on update, e.g. `{ strategy: gradual, propagationPolicy: foreground }`. |
+| keda.scaledJob.scalingStrategy | object | `{}` | Strategy for deciding how many Jobs to create, e.g. `{ strategy: accurate }`. |
+| keda.scaledJob.triggers | object/list | `[]` | Scaling triggers (tpl-rendered). Required, e.g. `[{ type: rabbitmq, metadata: {...} }]`. |
 
 ### Pod Disruption Budget parameters
 
