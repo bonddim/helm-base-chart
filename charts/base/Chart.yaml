@@ -2,7 +2,8 @@ apiVersion: v2
 name: base
 description: Base Helm chart for Kubernetes - fully values-driven.
 type: application
-version: 0.6.1
+version: 0.6.2
+appVersion: latest
 maintainers:
   - name: bonddim
 sources:
