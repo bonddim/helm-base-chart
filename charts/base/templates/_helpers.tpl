@@ -95,7 +95,7 @@ Tag defaults to Chart.AppVersion when empty.
 {{- define "base.image" -}}
 {{- $registry := coalesce .Values.global.imageRegistry .Values.image.registry }}
 {{- $repository := .Values.image.repository }}
-{{- $tag := coalesce .Values.image.tag .Values.global.imageTag "latest" }}
+{{- $tag := coalesce .Values.image.tag .Values.global.imageTag .Chart.AppVersion }}
 {{- if $registry }}
 {{- printf "%s/%s:%s" $registry $repository $tag }}
 {{- else }}
