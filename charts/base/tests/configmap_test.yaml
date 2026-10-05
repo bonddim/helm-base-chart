@@ -1,0 +1,71 @@
+suite: configmap
+templates:
+  - config/configmap.yaml
+tests:
+  - it: renders plain string values as-is
+    set:
+      configMap.enabled: true
+      configMap.data:
+        LOG_LEVEL: info
+    asserts:
+      - equal:
+          path: data.LOG_LEVEL
+          value: info
+
+  - it: quotes scalar values that are not strings
+    set:
+      configMap.enabled: true
+      configMap.data:
+        WORKERS: 4
+        DEBUG: true
+    asserts:
+      - equal:
+          path: data.WORKERS
+          value: "4"
+      - equal:
+          path: data.DEBUG
+          value: "true"
+
+  - it: templates string values
+    release:
+      name: myapp
+    set:
+      configMap.enabled: true
+      configMap.data:
+        SERVICE_HOST: "{{ .Release.Name }}-api"
+    asserts:
+      - equal:
+          path: data.SERVICE_HOST
+          value: myapp-api
+
+  - it: renders map values as a YAML document
+    set:
+      configMap.enabled: true
+      configMap.data:
+        config.yaml:
+          Log:
+            Level: Debug
+          Database:
+            Host: db
+    asserts:
+      - equal:
+          path: data["config.yaml"]
+          value: |
+            Database:
+              Host: db
+            Log:
+              Level: Debug
+
+  - it: templates inside map values
+    release:
+      namespace: dev
+    set:
+      configMap.enabled: true
+      configMap.data:
+        config.yaml:
+          VaultUrl: "https://kv-{{ .Release.Namespace }}.vault.azure.net"
+    asserts:
+      - equal:
+          path: data["config.yaml"]
+          value: |
+            VaultUrl: https://kv-dev.vault.azure.net

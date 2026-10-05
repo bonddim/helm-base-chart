@@ -619,7 +619,8 @@ configMap:
   # -- Labels for the ConfigMap.
   # @section -- ConfigMap parameters
   labels: {}
-  # -- Key/value data for the ConfigMap.
+  # -- Key/value data for the ConfigMap (tpl-rendered). A map or list value is rendered as a YAML document,
+  # e.g. `{ config.yaml: { log: { level: info } } }`, so it can be deep-merged across values files.
   # @section -- ConfigMap parameters
   data: {}
 
@@ -648,4 +649,4 @@ secret:
 ########################################################################
 # -- (object/list) Render additional Kubernetes manifests. Each entry may be a string (with Go template expressions) or a YAML object.
 # @section -- Extras
-extraObjects: []
+extraObjects: {}
