@@ -9,6 +9,12 @@ metadata:
   name: {{ include "base.fullname" . }}
 data:
   {{- range $key, $value := .Values.configMap.data }}
-  {{ $key }}: {{ $value | quote }}
+  {{- $rendered := include "base.render.value" (dict "value" $value "context" $) }}
+  {{- if or (kindIs "map" $value) (kindIs "slice" $value) (contains "\n" $rendered) }}
+  {{ $key }}: |
+    {{- $rendered | nindent 4 }}
+  {{- else }}
+  {{ $key }}: {{ $rendered | quote }}
+  {{- end }}
   {{- end }}
 {{- end }}
